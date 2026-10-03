@@ -4,465 +4,795 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منظومة تتبع الدخول المدرسي - الأكاديمية الجهوية مراكش آسفي</title>
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS for Excel Import/Export -->
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS CDN for Excel Import/Export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- FontAwesome Icons -->
+    <!-- FontAwesome Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts Arabic -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
-        .tab-btn.active { background-color: #047857; color: white; border-color: #047857; }
-        .form-section-title { border-right: 4px solid #059669; padding-right: 0.75rem; color: #065f46; font-weight: 800; }
-        .custom-table th, .custom-table td { text-align: right; padding: 0.75rem; border-bottom: 1px solid #e2e8f0; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f1f5f9;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: #fff; color: #000; }
+            .card-shadow { box-shadow: none !important; border: 1px solid #ccc !important; }
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .tab-active {
+            background-color: #059669 !important;
+            color: white !important;
+            border-color: #059669 !important;
+        }
+        .level-card.selected {
+            border-color: #059669;
+            background-color: #ecfdf5;
+            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.1), 0 2px 4px -1px rgba(5, 150, 105, 0.06);
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- Header Section -->
-    <header class="bg-gradient-to-r from-emerald-900 via-teal-800 to-indigo-900 text-white shadow-md sticky top-0 z-50">
+    <!-- Top Header Bar with AREF Banner -->
+    <header class="bg-gradient-to-r from-emerald-900 via-teal-800 to-indigo-900 text-white shadow-lg sticky top-0 z-50 no-print">
         <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div class="flex items-center space-x-3 space-x-reverse">
-                    <div class="bg-white p-2 rounded-xl text-emerald-800 text-2xl font-bold shadow">
-                        <i class="fa-solid fa-school-flag"></i>
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
+                
+                <!-- Logo & Title Section -->
+                <div class="flex items-center gap-4">
+                    <div class="bg-white p-2 rounded-xl shadow-md hidden sm:block">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Kingdom_of_Morocco_Coat_of_Arms.svg/1200px-Kingdom_of_Morocco_Coat_of_Arms.svg.png" alt="Logo Royaume" class="h-12 w-auto">
                     </div>
                     <div>
-                        <h1 class="font-bold text-lg leading-tight">شبكة تتبع الدخول المدرسي الرسمية</h1>
-                        <p class="text-xs text-emerald-200">الأكاديمية الجهوية للتربية والتكوين - جهة مراكش آسفي</p>
+                        <h1 class="text-xl sm:text-2xl font-extrabold tracking-wide text-white flex items-center gap-2">
+                            <span>الأكاديمية الجهوية للتربية والتكوين - مراكش آسفي</span>
+                        </h1>
+                        <p class="text-xs sm:text-sm text-emerald-200 font-semibold mt-0.5">المنظومة الرقمية لملء وتعديل وتدبير شبكة تتبع الدخول المدرسي</p>
                     </div>
                 </div>
-                
-                <!-- Navbar Actions -->
-                <div class="flex flex-wrap items-center gap-2">
-                    <button onclick="switchSection('dashboard')" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm transition flex items-center gap-2 border border-white/20">
-                        <i class="fa-solid fa-chart-pie"></i> لوحة القيادة
+
+                <!-- Navigation Controls -->
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <button onclick="switchView('dashboard')" id="nav-dashboard-btn" class="bg-white/10 hover:bg-white/20 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 border border-white/20">
+                        <i class="fa-solid fa-chart-line text-emerald-300"></i>
+                        <span>لوحة القيادة والتحليلات</span>
                     </button>
 
-                    <button onclick="switchSection('form')" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-sm transition flex items-center gap-2 shadow font-bold">
-                        <i class="fa-solid fa-clipboard-list"></i> استمارة الشبكة والأسئلة
+                    <button onclick="switchView('form')" id="nav-form-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 shadow-md">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>الاستمارة المباشرة</span>
                     </button>
 
-                    <label class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-sm transition flex items-center gap-2 shadow cursor-pointer">
-                        <i class="fa-solid fa-file-import"></i> استيراد Excel
-                        <input type="file" id="importFile" accept=".xlsx, .xls" class="hidden" onchange="importExcel(event)">
+                    <button onclick="exportExcelData()" class="bg-teal-600 hover:bg-teal-500 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 shadow-md">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>تصدير</span>
+                    </button>
+
+                    <label class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 shadow-md cursor-pointer">
+                        <i class="fa-solid fa-file-import"></i>
+                        <span>استيراد</span>
+                        <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="hidden" onchange="importExcelData(event)">
                     </label>
-
-                    <button onclick="exportExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-sm transition flex items-center gap-2 shadow">
-                        <i class="fa-solid fa-file-excel"></i> تصدير Excel
-                    </button>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Body Container -->
+    <!-- Main Content Container -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
 
-        <!-- DASHBOARD VIEW -->
-        <div id="dashboardSection" class="space-y-6">
-            <!-- Filter Bar -->
-            <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                <span class="font-bold text-sm text-slate-700 flex items-center gap-2">
-                    <i class="fa-solid fa-filter text-emerald-600"></i> تصفية حسب السلك التعليمي:
-                </span>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="filterLevel('الكل')" class="tab-btn active border border-slate-300 px-4 py-1.5 rounded-xl text-sm font-semibold transition">الكل</button>
-                    <button onclick="filterLevel('الابتدائي')" class="tab-btn border border-slate-300 px-4 py-1.5 rounded-xl text-sm font-semibold transition">الابتدائي</button>
-                    <button onclick="filterLevel('الإعدادي')" class="tab-btn border border-slate-300 px-4 py-1.5 rounded-xl text-sm font-semibold transition">الإعدادي</button>
-                    <button onclick="filterLevel('التأهيلي')" class="tab-btn border border-slate-300 px-4 py-1.5 rounded-xl text-sm font-semibold transition">التأهيلي</button>
+        <!-- LEVEL SELECTOR & REGION SELECTOR BAR -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 no-print space-y-4">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+                
+                <!-- Directorate Selector -->
+                <div class="lg:col-span-4">
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                        <i class="fa-solid fa-map-location-dot text-emerald-600"></i>
+                        <span>المديرية الإقليمية:</span>
+                    </label>
+                    <select id="main-directorate-select" onchange="onDirectorateChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <option value="مديرية مراكش">مديرية مراكش</option>
+                        <option value="مديرية آسفي">مديرية آسفي</option>
+                        <option value="مديرية الحوز">مديرية الحوز</option>
+                        <option value="مديرية قلعة السراغنة">مديرية قلعة السراغنة</option>
+                        <option value="مديرية الصويرة">مديرية الصويرة</option>
+                        <option value="مديرية شيشاوة">مديرية شيشاوة</option>
+                        <option value="مديرية الرحامنة">مديرية الرحامنة</option>
+                        <option value="مديرية اليوسفية">مديرية اليوسفية</option>
+                    </select>
                 </div>
-            </div>
 
-            <!-- Dashboard Stat Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Educational Cycle Selection Cards -->
+                <div class="lg:col-span-8">
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                        <i class="fa-solid fa-graduation-cap text-emerald-600"></i>
+                        <span>السلك التعليمي:</span>
+                    </label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button type="button" onclick="selectEducationLevel('الابتدائي')" id="level-btn-primary" class="level-card selected border-2 border-emerald-600 bg-emerald-50 text-emerald-900 rounded-xl p-3 text-center transition flex flex-col items-center justify-center gap-1">
+                            <i class="fa-solid fa-child text-lg"></i>
+                            <span class="font-bold text-xs sm:text-sm">ابتدائي</span>
+                        </button>
+
+                        <button type="button" onclick="selectEducationLevel('الإعدادي')" id="level-btn-prep" class="level-card border-2 border-slate-200 bg-white text-slate-700 rounded-xl p-3 text-center transition flex flex-col items-center justify-center gap-1 hover:border-slate-300">
+                            <i class="fa-solid fa-book-open text-lg"></i>
+                            <span class="font-bold text-xs sm:text-sm">إعدادي</span>
+                        </button>
+
+                        <button type="button" onclick="selectEducationLevel('التأهيلي')" id="level-btn-sec" class="level-card border-2 border-slate-200 bg-white text-slate-700 rounded-xl p-3 text-center transition flex flex-col items-center justify-center gap-1 hover:border-slate-300">
+                            <i class="fa-solid fa-user-graduate text-lg"></i>
+                            <span class="font-bold text-xs sm:text-sm">تأهيلي</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- FORM VIEW SECTION -->
+        <div id="form-view" class="space-y-6">
+            <form id="master-grid-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
+                
+                <!-- SECTION 1: General Info & Committee Members -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
+                        <h2 class="font-bold text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-circle-info text-emerald-400"></i>
+                            <span>المعطيات العامة وأعضاء اللجنة</span>
+                        </h2>
+                        <span id="current-level-badge" class="bg-emerald-600 text-white text-xs px-3 py-1 rounded-full font-bold">السلك الابتدائي</span>
+                    </div>
+
+                    <div class="p-5 space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">اسم المؤسسة التعليمية *</label>
+                                <input type="text" id="form-school-name" required placeholder="مثال: مدرسة الإمام البخاري" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">الجماعة *</label>
+                                <input type="text" id="form-commune" required placeholder="اسم الجماعة" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">تاريخ الزيارة *</label>
+                                <input type="date" id="form-visit-date" required class="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">اسم مدير(ة) المؤسسة</label>
+                                <input type="text" id="form-manager-name" placeholder="الاسم الكامل للمدير" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">رقم التأجير</label>
+                                <input type="text" id="form-manager-pno" placeholder="رقم التأجير" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Inspector Visits Section -->
+                        <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 space-y-3">
+                            <h3 class="font-bold text-xs text-indigo-900 flex items-center gap-1.5">
+                                <i class="fa-solid fa-user-check text-indigo-600"></i>
+                                <span>زيارات المفتشين المواكبين:</span>
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">هل تعرف المؤسسة زيارات المفتشين المواكبين؟</label>
+                                    <select id="form-inspector-visit-known" class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white">
+                                        <option value="نعم">نعم</option>
+                                        <option value="لا">لا</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">عدد الزيارات (إن وجد/معروف):</label>
+                                    <input type="number" id="form-inspector-visit-count" placeholder="مثال: 3" min="0" class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Committee Members Dynamic Input -->
+                        <div class="space-y-3">
+                            <label class="block text-xs font-bold text-slate-700 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-users text-slate-500"></i>
+                                    <span>أسماء أعضاء لجنة الزيارة الميدانية:</span>
+                                </span>
+                                <button type="button" onclick="addCommitteeMemberInput()" class="text-xs bg-emerald-100 text-emerald-800 hover:bg-emerald-200 px-3 py-1 rounded-lg font-bold transition">
+                                    + إضافة اسم عضو لجنة
+                                </button>
+                            </label>
+                            <div id="committee-members-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <input type="text" class="committee-member-field border border-slate-300 rounded-xl p-2 text-sm" placeholder="اسم المفتش أو أطار اللجنة (1)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: Student Enrollment & Dropout Recovery Statistics -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-800 text-white px-5 py-3.5 flex items-center justify-between">
+                        <h2 class="font-bold text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-users-rectangle text-teal-400"></i>
+                            <span>إحصائيات التلاميذ والتسجيل وإرجاع المنقطعين</span>
+                        </h2>
+                    </div>
+
+                    <div class="p-5 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">الأعداد المتوقعة في الخريطة</label>
+                                <input type="number" id="form-expected-students" value="0" min="0" oninput="calculateRates()" class="w-full border border-slate-300 rounded-lg p-2 text-sm font-bold bg-white">
+                            </div>
+
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">الوافدون (من داخل/خارج النيابة)</label>
+                                <input type="number" id="form-transfers-in" value="0" min="0" oninput="calculateRates()" class="w-full border border-slate-300 rounded-lg p-2 text-sm font-bold bg-white">
+                            </div>
+
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">المنقطعون الذين تم إرجاعهم</label>
+                                <input type="number" id="form-returned-students" value="0" min="0" oninput="calculateRates()" class="w-full border border-slate-300 rounded-lg p-2 text-sm font-bold bg-white">
+                            </div>
+
+                            <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+                                <label class="block text-xs font-bold text-emerald-800 mb-1">عدد المسجلين فعلياً *</label>
+                                <input type="number" id="form-actual-registered" value="0" min="0" required oninput="calculateRates()" class="w-full border border-emerald-300 rounded-lg p-2 text-sm font-bold bg-white text-emerald-900">
+                            </div>
+
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">المغادرون (شهادة المغادرة)</label>
+                                <input type="number" id="form-transfers-out" value="0" min="0" oninput="calculateRates()" class="w-full border border-slate-300 rounded-lg p-2 text-sm font-bold bg-white">
+                            </div>
+
+                            <div class="bg-red-50 p-3 rounded-xl border border-red-200">
+                                <label class="block text-xs font-bold text-red-800 mb-1">غير الملتحقين فعلياً *</label>
+                                <input type="number" id="form-non-joined" value="0" min="0" required oninput="calculateRates()" class="w-full border border-red-300 rounded-lg p-2 text-sm font-bold bg-white text-red-900">
+                            </div>
+
+                            <div class="bg-amber-50 p-3 rounded-xl border border-amber-200">
+                                <label class="block text-xs font-bold text-amber-800 mb-1">نسبة عدم الالتحاق (%)</label>
+                                <input type="text" id="form-non-joined-rate" readonly value="0%" class="w-full border border-amber-300 rounded-lg p-2 text-sm font-bold bg-amber-100 text-amber-900">
+                            </div>
+
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">الجدد منهم (بالسنة الأولى/الجذوع)</label>
+                                <input type="number" id="f_newStudents" value="0" min="0" class="w-full border border-slate-300 rounded-lg p-2 text-sm font-bold bg-white">
+                            </div>
+                        </div>
+
+                        <!-- Dropout Return Process -->
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                            <h3 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-rotate-left text-emerald-600"></i>
+                                <span>عملية إعادة تسجيل وتثبيت المنقطعين والمفصولين:</span>
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">عدد الطلبات المقدمة</label>
+                                    <input type="number" id="f_requestsCount" value="0" min="0" class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">تاريخ انعقاد مجلس القسم للبت</label>
+                                    <input type="date" id="f_councilDate" class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">عدد الطلبات الملبية</label>
+                                    <input type="number" id="f_requestsAccepted" value="0" min="0" class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: Class Structure, Overcrowding & Multigrade -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-800 text-white px-5 py-3.5 flex items-center justify-between">
+                        <h2 class="font-bold text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-chalkboard text-amber-400"></i>
+                            <span>بنيات الأقسام والاكتظاظ والأقسام المشتركة</span>
+                        </h2>
+                    </div>
+
+                    <div class="p-5 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">أقسام أقل من 30 تلميذاً</label>
+                                <input type="number" id="f_classUnder30" value="0" min="0" class="w-full border border-slate-300 rounded-lg p-2 text-sm font-bold bg-white">
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">أقسام ما بين 31 و 44 تلميذاً</label>
+                                <input type="number" id="f_class31to44" value="0" min="0" class="w-full border border-slate-300 rounded-lg p-2 text-sm font-bold bg-white">
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">أقسام ما بين 45 و 50 تلميذاً</label>
+                                <input type="number" id="f_class45to50" value="0" min="0" class="w-full border border-slate-300 rounded-lg p-2 text-sm font-bold bg-white">
+                            </div>
+                            <div class="bg-red-50 p-3 rounded-xl border border-red-200">
+                                <label class="block text-xs font-bold text-red-800 mb-1">أقسام أكثر من 50 تلميذاً (اكتظاظ)</label>
+                                <input type="number" id="f_classOver50" value="0" min="0" class="w-full border border-red-300 rounded-lg p-2 text-sm font-bold bg-white text-red-900">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">الأقسام متعددة المستويات (المشتركة):</label>
+                                <input type="text" id="f_multiLevelNotes" placeholder="عدد الأقسام والمستويات المدمجة..." class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">اقتراحات لتجاوز الاكتظاظ والأقسام المشتركة:</label>
+                                <input type="text" id="f_overcrowdSolutions" placeholder="حلول برمجية أو توسيعية..." class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: Human Resources (Teaching & Administrative) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-800 text-white px-5 py-3.5 flex items-center justify-between">
+                        <h2 class="font-bold text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-chalkboard-user text-indigo-400"></i>
+                            <span>الموارد البشرية (هيئة التدريس والإدارة)</span>
+                        </h2>
+                    </div>
+
+                    <div class="p-5">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">المتوفر بعد الحركة</label>
+                                <input type="number" id="f_teachersAvail" value="0" min="0" oninput="calculateTeacherDiff()" class="w-full border border-slate-300 rounded-lg p-2 text-sm font-bold bg-white">
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">المعينون الجدد / المكلفون</label>
+                                <input type="number" id="f_teachersNew" value="0" min="0" oninput="calculateTeacherDiff()" class="w-full border border-slate-300 rounded-lg p-2 text-sm font-bold bg-white">
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">العدد اللازم</label>
+                                <input type="number" id="f_teachersNeeded" value="0" min="0" oninput="calculateTeacherDiff()" class="w-full border border-slate-300 rounded-lg p-2 text-sm font-bold bg-white">
+                            </div>
+                            <div class="bg-amber-50 p-3 rounded-xl border border-amber-200">
+                                <label class="block text-xs font-bold text-amber-900 mb-1">الخصاص (-) / الفائض (+)</label>
+                                <input type="number" id="f_teachersDiff" value="0" readonly class="w-full border border-amber-300 rounded-lg p-2 text-sm font-bold bg-amber-100 text-amber-900">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: Core Questions & Quality Metrics (Yes / No Questions) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-800 text-white px-5 py-3.5 flex items-center justify-between">
+                        <h2 class="font-bold text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-emerald-400"></i>
+                            <span>الأسئلة والتدابير المحورية وتفعيل مجالس وهياكل المؤسسة</span>
+                        </h2>
+                    </div>
+
+                    <div class="p-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                            <!-- 1. Najah Association -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">1. جمعية دعم مدرسة النجاح وتأسيسها والاستفادة من منحة القرب:</span>
+                                <div class="flex items-center gap-4 text-sm">
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_najah" value="نعم" checked class="text-emerald-600 focus:ring-emerald-500"> نعم</label>
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_najah" value="لا" class="text-red-600 focus:ring-red-500"> لا</label>
+                                </div>
+                                <input type="text" id="q_najah_why" placeholder="في حالة الإجابة بلا، أذكر الأسباب..." class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white">
+                            </div>
+
+                            <!-- 2. Parents Association -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">2. جمعية آباء وأمهات وأولياء التلاميذ وتجديد مكتبها والمشاركة:</span>
+                                <div class="flex items-center gap-4 text-sm">
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_parents" value="نعم" checked class="text-emerald-600 focus:ring-emerald-500"> نعم</label>
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_parents" value="لا" class="text-red-600 focus:ring-red-500"> لا</label>
+                                </div>
+                                <input type="text" id="q_parents_why" placeholder="ملاحظات حول المكاتب والتجديد..." class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white">
+                            </div>
+
+                            <!-- 3. School Project -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">3. إعداد وتأسيس وصياغة وتفعيل مشروع المؤسسة:</span>
+                                <div class="flex items-center gap-4 text-sm">
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_project" value="نعم" checked class="text-emerald-600 focus:ring-emerald-500"> نعم</label>
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_project" value="لا" class="text-red-600 focus:ring-red-500"> لا</label>
+                                </div>
+                                <input type="text" id="q_project_why" placeholder="في حالة الإجابة بلا، لماذا؟" class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white">
+                            </div>
+
+                            <!-- 4. Teacher Equipment & Digital Tools -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">4. توفر عدة عمل الأساتذة (حاسوب / Office / المسلاط الضوئي):</span>
+                                <div class="flex items-center gap-4 text-sm">
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_tools" value="نعم" checked class="text-emerald-600 focus:ring-emerald-500"> نعم</label>
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_tools" value="لا" class="text-red-600 focus:ring-red-500"> لا</label>
+                                </div>
+                                <input type="text" id="q_tools_why" placeholder="حدد النقص إن وجد..." class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white">
+                            </div>
+
+                            <!-- 5. Student Reception -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">5. استقبال التلاميذ والتطليع على النظام الداخلي وجدول الحصص:</span>
+                                <div class="flex items-center gap-4 text-sm">
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_reception" value="نعم" checked class="text-emerald-600 focus:ring-emerald-500"> نعم</label>
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_reception" value="لا" class="text-red-600 focus:ring-red-500"> لا</label>
+                                </div>
+                                <input type="text" id="q_reception_why" placeholder="ملاحظات الاستقبال..." class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white">
+                            </div>
+
+                            <!-- 6. National Flag -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">6. توفر العلم الوطني وتحيته وترديد النشيد الوطني:</span>
+                                <div class="flex items-center gap-4 text-sm">
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_flag" value="نعم" checked class="text-emerald-600 focus:ring-emerald-500"> نعم</label>
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_flag" value="لا" class="text-red-600 focus:ring-red-500"> لا</label>
+                                </div>
+                                <input type="text" id="q_flag_why" placeholder="حالة العلم والنشيد..." class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white">
+                            </div>
+
+                            <!-- 7. Actual Start of School -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">7. انطلاق الدراسة فعلياً وتوفر المقررات والكتب:</span>
+                                <div class="flex items-center gap-4 text-sm">
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_start" value="نعم" checked class="text-emerald-600 focus:ring-emerald-500"> نعم</label>
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_start" value="لا" class="text-red-600 focus:ring-red-500"> لا</label>
+                                </div>
+                                <input type="text" id="q_start_why" placeholder="تاريخ الانطلاق والأسباب في حالة التأخر..." class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white">
+                            </div>
+
+                            <!-- 8. Diagnostic Assessment & Support Plans -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">8. تمرير الروائز وتحليل النتائج ووضع خطة الدعم التربوي:</span>
+                                <div class="flex items-center gap-4 text-sm">
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_tests" value="نعم" checked class="text-emerald-600 focus:ring-emerald-500"> نعم</label>
+                                    <label class="flex items-center gap-1.5 cursor-pointer font-bold"><input type="radio" name="q_tests" value="لا" class="text-red-600 focus:ring-red-500"> لا</label>
+                                </div>
+                                <input type="text" id="q_tests_why" placeholder="توفر العدة وإنجاز خطة الدعم..." class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white">
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 6: Infrastructure, Equipment & Social Support -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-800 text-white px-5 py-3.5 flex items-center justify-between">
+                        <h2 class="font-bold text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-wrench text-sky-400"></i>
+                            <span>البناءات والتجهيزات والدعم الاجتماعي والتأهيل</span>
+                        </h2>
+                    </div>
+
+                    <div class="p-5">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">حالة البناءات والتعويض والتوسيع</label>
+                                <select id="f_buildingStatus" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-white">
+                                    <option value="انتهت به الأشغال">انتهت به الأشغال</option>
+                                    <option value="في طور الإنجاز">في طور الإنجاز</option>
+                                    <option value="توقف الأشغال">توقف الأشغال</option>
+                                    <option value="عدم انطلاق الأشغال">عدم انطلاق الأشغال</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">الخصاص في التجهيز (مقاعد/سبورات/مكاتب)</label>
+                                <input type="text" id="f_equipShortage" placeholder="الخصاص ونوع التجهيز..." class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">حالة التأهيل (ماء، كهرباء، مرافق، ترميم)</label>
+                                <select id="f_rehabStatus" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-white">
+                                    <option value="جاهز للدخول المدرسي">جاهز للدخول المدرسي</option>
+                                    <option value="في طور الإنجاز">في طور الإنجاز</option>
+                                    <option value="يتطلب إصلاح وترميم">يتطلب إصلاح وترميم</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">النقل المدرسي والأسطول المتوفر</label>
+                                <input type="text" id="f_transportStatus" placeholder="عدد الحافلات والمستفيدين..." class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">التعاون مع الشركاء والجماعات</label>
+                                <input type="text" id="f_partnerships" placeholder="الشراكات والاتفاقيات..." class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">نسبة التزويد بالكتب والمقررات (%)</label>
+                                <input type="text" id="f_textbooksRate" placeholder="مثال: 95%" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 7: Recommendations, Issues & Final Remarks -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-800 text-white px-5 py-3.5 flex items-center justify-between">
+                        <h2 class="font-bold text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-comment-dots text-emerald-400"></i>
+                            <span>المشاكل المطروحة والحلول المقترحة والقرارات</span>
+                        </h2>
+                    </div>
+
+                    <div class="p-5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">الملاحظات والتوصيات العامة للجنة الزيارة:</label>
+                            <textarea id="form-general-notes" rows="3" placeholder="أذكر المشاكل التي تعيق الدخول المدرسي والحلول المقترحة ومستوى التدخل..." class="w-full border border-slate-300 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Submit Bar -->
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button type="button" onclick="switchView('dashboard')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-6 py-2.5 rounded-xl text-sm transition">
+                        إلغاء
+                    </button>
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-2.5 rounded-xl text-sm shadow-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>حفظ شبكة التتبع بالكامل</span>
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- DASHBOARD & ANALYTICS VIEW SECTION -->
+        <div id="dashboard-view" class="hidden space-y-6">
+            
+            <!-- Key Performance Indicator Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-semibold text-slate-500">مجموع المسجلين فعلياً</p>
-                        <h3 id="statActual" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+                        <p class="text-xs font-bold text-slate-500">إجمالي التلاميذ المسجلين</p>
+                        <h3 id="dash-total-actual" class="text-2xl font-extrabold text-slate-800 mt-1">0</h3>
                     </div>
-                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl font-bold">
                         <i class="fa-solid fa-users"></i>
                     </div>
                 </div>
+
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-semibold text-slate-500">غير الملتحقين</p>
-                        <h3 id="statAbsent" class="text-2xl font-bold text-red-600 mt-1">0</h3>
+                        <p class="text-xs font-bold text-slate-500">إجمالي غير الملتحقين</p>
+                        <h3 id="dash-total-absent" class="text-2xl font-extrabold text-red-600 mt-1">0</h3>
                     </div>
-                    <div class="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center text-xl">
+                    <div class="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center text-xl font-bold">
                         <i class="fa-solid fa-user-xmark"></i>
                     </div>
                 </div>
+
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-semibold text-slate-500">نسبة الانطلاق الفعلي للدراسة</p>
-                        <h3 id="statStartRate" class="text-2xl font-bold text-emerald-600 mt-1">0%</h3>
+                        <p class="text-xs font-bold text-slate-500">نسبة الانطلاق الفعلي</p>
+                        <h3 id="dash-start-rate" class="text-2xl font-extrabold text-teal-600 mt-1">0%</h3>
                     </div>
-                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-calendar-check"></i>
+                    <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center text-xl font-bold">
+                        <i class="fa-solid fa-square-check"></i>
                     </div>
                 </div>
+
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-semibold text-slate-500">عدد المؤسسات المزارة</p>
-                        <h3 id="statReports" class="text-2xl font-bold text-amber-600 mt-1">0</h3>
+                        <p class="text-xs font-bold text-slate-500">المؤسسات المزارة</p>
+                        <h3 id="dash-schools-count" class="text-2xl font-extrabold text-indigo-600 mt-1">0</h3>
                     </div>
-                    <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl">
+                    <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-xl font-bold">
                         <i class="fa-solid fa-school"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- Data Table Overview -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-bold text-slate-800">تقارير شبكة تتبع الدخول المدرسي المسجلة</h2>
+            <!-- Analytics Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                    <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-emerald-600"></i>
+                        <span>توزيع التسجيل والالتحاق حسب المديريات</span>
+                    </h3>
+                    <div class="h-64">
+                        <canvas id="chart-enrollment-by-dir"></canvas>
+                    </div>
                 </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                    <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-teal-600"></i>
+                        <span>مؤشرات انطلاق الدراسة وتمرير الروائز</span>
+                    </h3>
+                    <div class="h-64 flex items-center justify-center">
+                        <canvas id="chart-indicators-pie"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saved Reports Table Section -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-table-list text-emerald-600"></i>
+                        <span>سجل التقارير والزيارات الميدانية المحفوظة</span>
+                    </h3>
+                    <button onclick="clearAllData()" class="text-xs text-red-600 hover:text-red-800 font-bold">مسح جميع المعطيات</button>
+                </div>
+
                 <div class="overflow-x-auto">
-                    <table class="w-full text-right text-sm custom-table">
-                        <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                    <table class="w-full text-right text-sm border-collapse">
+                        <thead class="bg-slate-50 text-slate-600 text-xs font-bold border-b border-slate-200">
                             <tr>
-                                <th>المديرية</th>
-                                <th>المؤسسة</th>
-                                <th>السلك</th>
-                                <th>تاريخ الزيارة</th>
-                                <th>المسجلون فعلياً</th>
-                                <th>غير الملتحقين</th>
-                                <th>انطلاق الدراسة</th>
-                                <th class="text-center">إجراءات</th>
+                                <th class="p-3">المديرية</th>
+                                <th class="p-3">المؤسسة</th>
+                                <th class="p-3">السلك</th>
+                                <th class="p-3">التاريخ</th>
+                                <th class="p-3">المسجلون</th>
+                                <th class="p-3">غير الملتحقين</th>
+                                <th class="p-3">انطلاق الدراسة</th>
+                                <th class="p-3 text-center">إجراءات</th>
                             </tr>
                         </thead>
-                        <tbody id="reportsTableBody" class="divide-y divide-slate-100">
+                        <tbody id="reports-table-body" class="divide-y divide-slate-100">
+                            <!-- Dynamic rows injected here -->
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
 
-        <!-- DETAILED FIELD FORM VIEW -->
-        <div id="formSection" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-8">
-                <div class="border-b border-slate-200 pb-4">
-                    <h2 class="text-xl font-bold text-emerald-900 flex items-center gap-2">
-                        <i class="fa-solid fa-clipboard-check text-emerald-600"></i>
-                        استمارة شبكة تتبع الدخول المدرسي الميدانية التفصيلية
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-1">مطابقة لشبكة التتبع الرسمية للأكاديمية بجميع الأقسام والجداول والأسئلة الفرعية.</p>
-                </div>
-
-                <form id="fullGridForm" onsubmit="saveReport(event)" class="space-y-8">
-
-                    <!-- 1. معطيات عامة -->
-                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
-                        <h3 class="form-section-title text-base"><i class="fa-solid fa-circle-info"></i> 1. معطيات عامة حول المؤسسة والزيارة</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold mb-1">المديرية / النيابة</label>
-                                <select id="f_directorate" class="w-full p-2 border rounded-lg text-sm" required>
-                                    <option value="مراكش">مراكش</option>
-                                    <option value="آسفي">آسفي</option>
-                                    <option value="الحوز">الحوز</option>
-                                    <option value="قلعة السراغنة">قلعة السراغنة</option>
-                                    <option value="الصويرة">الصويرة</option>
-                                    <option value="شيشاوة">شيشاوة</option>
-                                    <option value="الرحامنة">الرحامنة</option>
-                                    <option value="اليوسفية">اليوسفية</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">السلك التعليمي</label>
-                                <select id="f_level" class="w-full p-2 border rounded-lg text-sm" required>
-                                    <option value="الابتدائي">الابتدائي</option>
-                                    <option value="الإعدادي">الإعدادي</option>
-                                    <option value="التأهيلي">التأهيلي</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">الجماعة</label>
-                                <input type="text" id="f_commune" class="w-full p-2 border rounded-lg text-sm" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">إسم المؤسسة</label>
-                                <input type="text" id="f_school" class="w-full p-2 border rounded-lg text-sm" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">اسم المدير ورقم التأجير</label>
-                                <input type="text" id="f_manager" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">تاريخ الزيارة</label>
-                                <input type="date" id="f_visitDate" class="w-full p-2 border rounded-lg text-sm" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 2. أعداد التلاميذ والتوافق والالتحاق -->
-                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
-                        <h3 class="form-section-title text-base"><i class="fa-solid fa-users"></i> 2. معطيات أعداد التلاميذ والالتحاق</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold mb-1">الأعداد المتوقعة في التعديل</label>
-                                <input type="number" id="f_expected" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">الوافدون من داخل/خارج النيابة</label>
-                                <input type="number" id="f_transfers" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">المنقطعون الذين تم إرجاعهم</label>
-                                <input type="number" id="f_returned" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">عدد المسجلين فعلياً</label>
-                                <input type="number" id="f_actual" min="0" value="0" class="w-full p-2 border rounded-lg text-sm" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">المغادرون (شهادة المغادرة)</label>
-                                <input type="number" id="f_left" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">عدد غير الملتحقين</label>
-                                <input type="number" id="f_absent" min="0" value="0" class="w-full p-2 border rounded-lg text-sm" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">الجدد منهم (بالسنة الأولى / الجذوع)</label>
-                                <input type="number" id="f_newStudents" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3. إرجاع المنقطعين والمفصولين -->
-                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
-                        <h3 class="form-section-title text-base"><i class="fa-solid fa-user-plus"></i> 3. عملية إرجاع المنقطعين والمفصولين</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold mb-1">عدد الطلبات المقدمة</label>
-                                <input type="number" id="f_requestsCount" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">تاريخ انعقاد مجلس القسم للبت</label>
-                                <input type="date" id="f_councilDate" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">عدد الطلبات الملبية</label>
-                                <input type="number" id="f_requestsAccepted" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 4. بنيات الأقسام والاكتظاظ والتعليم المشترك -->
-                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
-                        <h3 class="form-section-title text-base"><i class="fa-solid fa-chalkboard"></i> 4. بنيات الأقسام والاكتظاظ والأقسام المشتركة</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold mb-1">أقسام أقل من 30 تلميذاً</label>
-                                <input type="number" id="f_classUnder30" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">أقسام ما بين 31 و 44 تلميذاً</label>
-                                <input type="number" id="f_class31to44" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">أقسام ما بين 45 و 50 تلميذاً</label>
-                                <input type="number" id="f_class45to50" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">أقسام أكثر من 50 تلميذاً (اكتظاظ)</label>
-                                <input type="number" id="f_classOver50" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 5. الموارد البشرية (هيئة التدريس والإدارة) -->
-                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
-                        <h3 class="form-section-title text-base"><i class="fa-solid fa-chalkboard-user"></i> 5. الموارد البشرية (هيئة التدريس والإدارة)</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold mb-1">المتوفر بعد الحركة</label>
-                                <input type="number" id="f_teachersAvail" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">المعينون الجدد / المكلفون</label>
-                                <input type="number" id="f_teachersNew" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">العدد اللازم</label>
-                                <input type="number" id="f_teachersNeeded" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">الخصاص / الفائض الحاصل</label>
-                                <input type="number" id="f_teachersDiff" value="0" class="w-full p-2 border rounded-lg text-sm">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 6. الأسئلة والتدابير المحورية -->
-                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-6">
-                        <h3 class="form-section-title text-base"><i class="fa-solid fa-list-check"></i> 6. الأسئلة والتدابير المحورية (نعم / لا)</h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                            <!-- 1. جمعية مدرسة النجاح -->
-                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">1. جمعية دعم مدرسة النجاح وتأسيسها والاستفادة من منحة القرب:</span>
-                                <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_najah" value="نعم" checked> نعم</label>
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_najah" value="لا"> لا</label>
-                                </div>
-                                <input type="text" id="q_najah_why" placeholder="في حالة الإجابة بلا، أذكر الأسباب..." class="w-full p-2 border rounded text-xs">
-                            </div>
-
-                            <!-- 2. جمعيات الآباء -->
-                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">2. جمعية آباء وأمهات وأولياء التلاميذ وتجديد مكتبها:</span>
-                                <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_parents" value="نعم" checked> نعم</label>
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_parents" value="لا"> لا</label>
-                                </div>
-                                <input type="text" id="q_parents_why" placeholder="ملاحظات حول تجديد المكتب والتفعيل..." class="w-full p-2 border rounded text-xs">
-                            </div>
-
-                            <!-- 3. مشروع المؤسسة -->
-                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">3. إعداد وصياغة وتفعيل مشروع المؤسسة:</span>
-                                <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_project" value="نعم" checked> نعم</label>
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_project" value="لا"> لا</label>
-                                </div>
-                                <input type="text" id="q_project_why" placeholder="في حالة الإجابة بلا، لماذا؟" class="w-full p-2 border rounded text-xs">
-                            </div>
-
-                            <!-- 4. عدة الأساتذة -->
-                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">4. توفر عدة عمل الأساتذة (حاسوب / Office / المسلاط الضوئي):</span>
-                                <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_tools" value="نعم" checked> نعم</label>
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_tools" value="لا"> لا</label>
-                                </div>
-                                <input type="text" id="q_tools_why" placeholder="حدد النقص إن وجد..." class="w-full p-2 border rounded text-xs">
-                            </div>
-
-                            <!-- 5. استقبال التلاميذ -->
-                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">5. استقبال التلاميذ وإطلاعهم على النظام الداخلي:</span>
-                                <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_reception" value="نعم" checked> نعم</label>
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_reception" value="لا"> لا</label>
-                                </div>
-                                <input type="text" id="q_reception_why" placeholder="ملاحظات الاستقبال..." class="w-full p-2 border rounded text-xs">
-                            </div>
-
-                            <!-- 6. العلم الوطني -->
-                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">6. توفر العلم الوطني وتحيته وترديد النشيد الوطني:</span>
-                                <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_flag" value="نعم" checked> نعم</label>
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_flag" value="لا"> لا</label>
-                                </div>
-                                <input type="text" id="q_flag_why" placeholder="حالة العلم والنشيد..." class="w-full p-2 border rounded text-xs">
-                            </div>
-
-                            <!-- 7. انطلاق الدراسة فعلياً -->
-                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">7. انطلاق الدراسة فعلياً في موعدها المحدد:</span>
-                                <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_start" value="نعم" checked> نعم</label>
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_start" value="لا"> لا</label>
-                                </div>
-                                <input type="text" id="q_start_why" placeholder="تاريخ الانطلاق والأسباب في حالة التأخر..." class="w-full p-2 border rounded text-xs">
-                            </div>
-
-                            <!-- 8. تمرير الروائز -->
-                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">8. تمرير وتحليل واستثمار الروائز ووضع خطة الدعم:</span>
-                                <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_tests" value="نعم" checked> نعم</label>
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_tests" value="لا"> لا</label>
-                                </div>
-                                <input type="text" id="q_tests_why" placeholder="توفر العدة وإنجاز الدعم..." class="w-full p-2 border rounded text-xs">
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- 7. أعضاء اللجنة والملاحظات والحلول -->
-                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
-                        <h3 class="form-section-title text-base"><i class="fa-solid fa-user-pen"></i> 7. أعضاء اللجنة الميدانية والملاحظات</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold mb-1">أعضاء اللجنة الميدانية (الاسم والنسب)</label>
-                                <input type="text" id="f_committee" placeholder="أسماء أعضاء اللجنة..." class="w-full p-2 border rounded-lg text-sm" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">المشاكل المطروحة والحلول المقترحة</label>
-                                <textarea id="f_notes" rows="3" placeholder="المشاكل والقرارات والتوصيات..." class="w-full p-2 border rounded-lg text-sm"></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Submit Buttons -->
-                    <div class="flex items-center justify-end gap-3 pt-4">
-                        <button type="button" onclick="switchSection('dashboard')" class="px-5 py-2.5 rounded-xl text-slate-600 bg-slate-200 font-bold text-sm">إلغاء</button>
-                        <button type="submit" class="px-7 py-2.5 rounded-xl text-white bg-emerald-600 hover:bg-emerald-700 font-bold text-sm shadow-lg">حفظ التقرير والشبكة بالكامل</button>
-                    </div>
-                </form>
-            </div>
         </div>
 
     </main>
 
-    <!-- JavaScript Logic Engine -->
+    <!-- Footer Section -->
+    <footer class="bg-slate-900 text-slate-400 py-4 text-center text-xs border-t border-slate-800 mt-auto no-print">
+        <p>جميع الحقوق محفوظة © الأكاديمية الجهوية للتربية والتكوين - جهة مراكش آسفي</p>
+    </footer>
+
+    <!-- JavaScript Application Core -->
     <script>
-        let reports = JSON.parse(localStorage.getItem('masterFullNetworkData')) || [];
-        let activeFilter = 'الكل';
+        // State Management
+        let appState = {
+            currentDirectorate: 'مديرية مراكش',
+            currentLevel: 'الابتدائي',
+            reports: JSON.parse(localStorage.getItem('aref_school_reports_data')) || []
+        };
 
-        function saveToStorage() {
-            localStorage.setItem('masterFullNetworkData', JSON.stringify(reports));
-        }
+        // Chart Instances
+        let dirChartInstance = null;
+        let pieChartInstance = null;
 
-        function switchSection(sec) {
-            if (sec === 'dashboard') {
-                document.getElementById('dashboardSection').classList.remove('hidden');
-                document.getElementById('formSection').classList.add('hidden');
-                renderReports();
+        // View Switching Logic
+        function switchView(viewName) {
+            const formView = document.getElementById('form-view');
+            const dashView = document.getElementById('dashboard-view');
+            const formBtn = document.getElementById('nav-form-btn');
+            const dashBtn = document.getElementById('nav-dashboard-btn');
+
+            if (viewName === 'form') {
+                formView.classList.remove('hidden');
+                dashView.classList.add('hidden');
+                formBtn.classList.add('bg-emerald-600');
+                dashBtn.classList.remove('bg-white/20');
             } else {
-                document.getElementById('dashboardSection').classList.add('hidden');
-                document.getElementById('formSection').classList.remove('hidden');
+                formView.classList.add('hidden');
+                dashView.classList.remove('hidden');
+                renderDashboardAnalytics();
             }
         }
 
-        function filterLevel(level) {
-            activeFilter = level;
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.innerText.includes(level));
-            });
-            renderReports();
+        // Education Level Selector
+        function selectEducationLevel(levelName) {
+            appState.currentLevel = levelName;
+            
+            // Update UI card buttons
+            document.querySelectorAll('.level-card').forEach(card => card.classList.remove('selected', 'border-emerald-600', 'bg-emerald-50', 'text-emerald-900'));
+            
+            if (levelName === 'الابتدائي') {
+                document.getElementById('level-btn-primary').classList.add('selected', 'border-emerald-600', 'bg-emerald-50', 'text-emerald-900');
+            } else if (levelName === 'الإعدادي') {
+                document.getElementById('level-btn-prep').classList.add('selected', 'border-emerald-600', 'bg-emerald-50', 'text-emerald-900');
+            } else {
+                document.getElementById('level-btn-sec').classList.add('selected', 'border-emerald-600', 'bg-emerald-50', 'text-emerald-900');
+            }
+
+            document.getElementById('current-level-badge').innerText = 'السلك ' + levelName;
         }
 
+        function onDirectorateChange() {
+            appState.currentDirectorate = document.getElementById('main-directorate-select').value;
+        }
+
+        // Dynamic Committee Member Inputs
+        function addCommitteeMemberInput() {
+            const container = document.getElementById('committee-members-container');
+            const count = container.children.length + 1;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'committee-member-field border border-slate-300 rounded-xl p-2 text-sm';
+            input.placeholder = `اسم العضو (${count})`;
+            container.appendChild(input);
+        }
+
+        // Automatic Rate Calculation
+        function calculateRates() {
+            const actual = parseFloat(document.getElementById('form-actual-registered').value) || 0;
+            const absent = parseFloat(document.getElementById('form-non-joined').value) || 0;
+            const total = actual + absent;
+
+            if (total > 0) {
+                const rate = ((absent / total) * 100).toFixed(1);
+                document.getElementById('form-non-joined-rate').value = rate + '%';
+            } else {
+                document.getElementById('form-non-joined-rate').value = '0%';
+            }
+        }
+
+        function calculateTeacherDiff() {
+            const avail = parseFloat(document.getElementById('f_teachersAvail').value) || 0;
+            const newT = parseFloat(document.getElementById('f_teachersNew').value) || 0;
+            const needed = parseFloat(document.getElementById('f_teachersNeeded').value) || 0;
+            
+            const diff = (avail + newT) - needed;
+            document.getElementById('f_teachersDiff').value = diff;
+        }
+
+        // Radio Helper
         function getRadioValue(name) {
             const el = document.querySelector(`input[name="${name}"]:checked`);
             return el ? el.value : 'لا';
         }
 
-        function saveReport(e) {
+        // Form Submit Handler
+        function handleFormSubmit(e) {
             e.preventDefault();
 
-            const actual = Number(document.getElementById('f_actual').value) || 0;
-            const absent = Number(document.getElementById('f_absent').value) || 0;
+            // Collect committee members
+            const committeeFields = document.querySelectorAll('.committee-member-field');
+            const committeeList = Array.from(committeeFields).map(f => f.value.trim()).filter(v => v !== '');
 
-            const report = {
+            const reportObj = {
                 id: Date.now(),
-                directorate: document.getElementById('f_directorate').value,
-                level: document.getElementById('f_level').value,
-                commune: document.getElementById('f_commune').value,
-                school: document.getElementById('f_school').value,
-                manager: document.getElementById('f_manager').value,
-                visitDate: document.getElementById('f_visitDate').value,
-                actual: actual,
-                absent: absent,
+                directorate: appState.currentDirectorate,
+                level: appState.currentLevel,
+                schoolName: document.getElementById('form-school-name').value,
+                commune: document.getElementById('form-commune').value,
+                visitDate: document.getElementById('form-visit-date').value,
+                managerName: document.getElementById('form-manager-name').value,
+                managerPNo: document.getElementById('form-manager-pno').value,
+                inspectorKnown: document.getElementById('form-inspector-visit-known').value,
+                inspectorCount: document.getElementById('form-inspector-visit-count').value,
+                committeeMembers: committeeList.join(' - '),
+                expectedStudents: Number(document.getElementById('form-expected-students').value) || 0,
+                transfersIn: Number(document.getElementById('form-transfers-in').value) || 0,
+                returnedStudents: Number(document.getElementById('form-returned-students').value) || 0,
+                actualRegistered: Number(document.getElementById('form-actual-registered').value) || 0,
+                transfersOut: Number(document.getElementById('form-transfers-out').value) || 0,
+                nonJoined: Number(document.getElementById('form-non-joined').value) || 0,
+                nonJoinedRate: document.getElementById('form-non-joined-rate').value,
+                newStudents: Number(document.getElementById('f_newStudents').value) || 0,
+                requestsCount: Number(document.getElementById('f_requestsCount').value) || 0,
+                councilDate: document.getElementById('f_councilDate').value,
+                requestsAccepted: Number(document.getElementById('f_requestsAccepted').value) || 0,
+                classUnder30: Number(document.getElementById('f_classUnder30').value) || 0,
+                class31to44: Number(document.getElementById('f_class31to44').value) || 0,
+                class45to50: Number(document.getElementById('f_class45to50').value) || 0,
+                classOver50: Number(document.getElementById('f_classOver50').value) || 0,
+                multiLevelNotes: document.getElementById('f_multiLevelNotes').value,
+                overcrowdSolutions: document.getElementById('f_overcrowdSolutions').value,
+                teachersAvail: Number(document.getElementById('f_teachersAvail').value) || 0,
+                teachersNew: Number(document.getElementById('f_teachersNew').value) || 0,
+                teachersNeeded: Number(document.getElementById('f_teachersNeeded').value) || 0,
+                teachersDiff: Number(document.getElementById('f_teachersDiff').value) || 0,
                 q_najah: getRadioValue('q_najah'),
                 q_parents: getRadioValue('q_parents'),
                 q_project: getRadioValue('q_project'),
@@ -471,121 +801,214 @@
                 q_flag: getRadioValue('q_flag'),
                 q_start: getRadioValue('q_start'),
                 q_tests: getRadioValue('q_tests'),
-                committee: document.getElementById('f_committee').value,
-                notes: document.getElementById('f_notes').value
+                buildingStatus: document.getElementById('f_buildingStatus').value,
+                equipShortage: document.getElementById('f_equipShortage').value,
+                rehabStatus: document.getElementById('f_rehabStatus').value,
+                transportStatus: document.getElementById('f_transportStatus').value,
+                partnerships: document.getElementById('f_partnerships').value,
+                textbooksRate: document.getElementById('f_textbooksRate').value,
+                notes: document.getElementById('form-general-notes').value
             };
 
-            reports.push(report);
-            saveToStorage();
-            document.getElementById('fullGridForm').reset();
-            alert('تم حفظ الشبكة والتقرير بالكامل بنجاح!');
-            switchSection('dashboard');
+            appState.reports.push(reportObj);
+            localStorage.setItem('aref_school_reports_data', JSON.stringify(appState.reports));
+
+            alert('تم حفظ تقرير شبكة الدخول المدرسي بنجاح!');
+            document.getElementById('master-grid-form').reset();
+            switchView('dashboard');
         }
 
-        function deleteReport(id) {
-            if (confirm('هل أنت متأكد من حذف هذا السجل؟')) {
-                reports = reports.filter(r => r.id !== id);
-                saveToStorage();
-                renderReports();
-            }
-        }
+        // Render Dashboard & Analytics Tables
+        function renderDashboardAnalytics() {
+            const reports = appState.reports;
+            
+            // Stats Calculations
+            let totActual = 0;
+            let totAbsent = 0;
+            let startYesCount = 0;
 
-        function renderReports() {
-            const tbody = document.getElementById('reportsTableBody');
+            reports.forEach(r => {
+                totActual += (r.actualRegistered || 0);
+                totAbsent += (r.nonJoined || 0);
+                if (r.q_start === 'نعم') startYesCount++;
+            });
+
+            document.getElementById('dash-total-actual').innerText = totActual.toLocaleString();
+            document.getElementById('dash-total-absent').innerText = totAbsent.toLocaleString();
+            document.getElementById('dash-schools-count').innerText = reports.length;
+
+            const startRate = reports.length > 0 ? ((startYesCount / reports.length) * 100).toFixed(1) : 0;
+            document.getElementById('dash-start-rate').innerText = startRate + '%';
+
+            // Populate Table
+            const tbody = document.getElementById('reports-table-body');
             tbody.innerHTML = '';
 
-            let filtered = activeFilter === 'الكل' ? reports : reports.filter(r => r.level === activeFilter);
-
-            let totActual = 0, totAbsent = 0, startedCount = 0;
-
-            filtered.forEach(r => {
-                totActual += r.actual;
-                totAbsent += r.absent;
-                if (r.q_start === 'نعم') startedCount++;
-
+            reports.forEach(r => {
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 border-b border-slate-100">
                         <td class="p-3 font-bold text-slate-800">${r.directorate}</td>
-                        <td class="p-3">${r.school}</td>
-                        <td class="p-3"><span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded font-semibold">${r.level}</span></td>
-                        <td class="p-3">${r.visitDate || '-'}</td>
-                        <td class="p-3 font-bold text-emerald-700">${r.actual.toLocaleString()}</td>
-                        <td class="p-3 font-bold text-red-600">${r.absent.toLocaleString()}</td>
-                        <td class="p-3"><span class="${r.q_start==='نعم'?'text-emerald-600':'text-red-500'} font-bold">${r.q_start}</span></td>
+                        <td class="p-3 font-semibold">${r.schoolName}</td>
+                        <td class="p-3"><span class="bg-slate-200 text-slate-800 text-xs px-2 py-0.5 rounded font-bold">${r.level}</span></td>
+                        <td class="p-3 text-xs text-slate-600">${r.visitDate || '-'}</td>
+                        <td class="p-3 font-bold text-emerald-700">${(r.actualRegistered || 0).toLocaleString()}</td>
+                        <td class="p-3 font-bold text-red-600">${(r.nonJoined || 0).toLocaleString()}</td>
+                        <td class="p-3"><span class="${r.q_start === 'نعم' ? 'text-emerald-600' : 'text-red-500'} font-bold">${r.q_start}</span></td>
                         <td class="p-3 text-center">
-                            <button onclick="deleteReport(${r.id})" class="text-red-500 hover:text-red-700 font-bold text-xs"><i class="fa-solid fa-trash"></i> حذف</button>
+                            <button onclick="deleteReportRecord(${r.id})" class="text-red-600 hover:text-red-800 font-bold text-xs">
+                                <i class="fa-solid fa-trash"></i> حذف
+                            </button>
                         </td>
                     </tr>
                 `;
             });
 
-            document.getElementById('statActual').innerText = totActual.toLocaleString();
-            document.getElementById('statAbsent').innerText = totAbsent.toLocaleString();
-            const startRate = filtered.length > 0 ? ((startedCount / filtered.length) * 100).toFixed(1) : 0;
-            document.getElementById('statStartRate').innerText = `${startRate}%`;
-            document.getElementById('statReports').innerText = filtered.length;
+            // Render Charts
+            renderCharts();
         }
 
-        function exportExcel() {
-            const dataToExport = reports.map(r => ({
+        function deleteReportRecord(id) {
+            if (confirm('هل أنت متأكد من حذف هذا السجل؟')) {
+                appState.reports = appState.reports.filter(r => r.id !== id);
+                localStorage.setItem('aref_school_reports_data', JSON.stringify(appState.reports));
+                renderDashboardAnalytics();
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('هل أنت متأكد من مسح جميع التقارير؟ لا يمكن التراجع عن هذه الخطوة.')) {
+                appState.reports = [];
+                localStorage.removeItem('aref_school_reports_data');
+                renderDashboardAnalytics();
+            }
+        }
+
+        // Charts Initialization
+        function renderCharts() {
+            const dirCtx = document.getElementById('chart-enrollment-by-dir').getContext('2d');
+            const pieCtx = document.getElementById('chart-indicators-pie').getContext('2d');
+
+            if (dirChartInstance) dirChartInstance.destroy();
+            if (pieChartInstance) pieChartInstance.destroy();
+
+            // Directorate aggregation
+            const dirMap = {};
+            appState.reports.forEach(r => {
+                dirMap[r.directorate] = (dirMap[r.directorate] || 0) + (r.actualRegistered || 0);
+            });
+
+            dirChartInstance = new Chart(dirCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(dirMap).length ? Object.keys(dirMap) : ['لا توجد معطيات'],
+                    datasets: [{
+                        label: 'عدد المسجلين فعلياً',
+                        data: Object.values(dirMap).length ? Object.values(dirMap) : [0],
+                        backgroundColor: '#059669',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Indicator counts
+            let testsYes = 0, testsNo = 0;
+            appState.reports.forEach(r => {
+                if (r.q_tests === 'نعم') testsYes++; else testsNo++;
+            });
+
+            pieChartInstance = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['تمرير الروائز (نعم)', 'لم يتم التمرير (لا)'],
+                    datasets: [{
+                        data: [testsYes, testsNo],
+                        backgroundColor: ['#0d9488', '#f43f5e']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // Export to Excel
+        function exportExcelData() {
+            if (!appState.reports.length) {
+                alert('لا توجد تقارير لتصديرها.');
+                return;
+            }
+
+            const exportArr = appState.reports.map(r => ({
                 'المديرية': r.directorate,
                 'السلك': r.level,
-                'المؤسسة': r.school,
+                'اسم المؤسسة': r.schoolName,
+                'الجماعة': r.commune,
                 'تاريخ الزيارة': r.visitDate,
-                'المسجلون فعليا': r.actual,
-                'غير الملتحقين': r.absent,
+                'المسجلون فعلياً': r.actualRegistered,
+                'غير الملتحقين': r.nonJoined,
+                'نسبة عدم الالتحاق': r.nonJoinedRate,
                 'انطلاق الدراسة': r.q_start,
-                'استقبال التلاميذ': r.q_reception,
                 'تمرير الروائز': r.q_tests,
-                'جمعية النجاح': r.q_najah,
-                'جمعية الآباء': r.q_parents,
                 'مشروع المؤسسة': r.q_project,
-                'أعضاء اللجنة': r.committee,
-                'ملاحظات وقرارات': r.notes
+                'أعضاء اللجنة': r.committeeMembers,
+                'الملاحظات': r.notes
             }));
-            const ws = XLSX.utils.json_to_sheet(dataToExport);
+
+            const ws = XLSX.utils.json_to_sheet(exportArr);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "شبكة التتبع");
-            XLSX.writeFile(wb, "شبكة_تتبع_الدخول_المدرسي_الشاملة.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "شبكة_الدخول_المدرسي");
+            XLSX.writeFile(wb, "شبكة_تتبع_الدخول_المدرسي_الأكاديمية.xlsx");
         }
 
-        function importExcel(e) {
-            const file = e.target.files[0];
+        // Import Excel
+        function importExcelData(evt) {
+            const file = evt.target.files[0];
             if (!file) return;
+
             const reader = new FileReader();
-            reader.onload = function(evt) {
-                const data = new Uint8Array(evt.target.result);
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
                 const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
                 if (json.length > 0) {
-                    json.forEach((row, idx) => {
-                        reports.push({
-                            id: Date.now() + idx,
-                            directorate: row['المديرية'] || 'غير محدد',
+                    json.forEach((row, i) => {
+                        appState.reports.push({
+                            id: Date.now() + i,
+                            directorate: row['المديرية'] || 'مديرية مراكش',
                             level: row['السلك'] || 'الابتدائي',
-                            school: row['المؤسسة'] || '',
+                            schoolName: row['اسم المؤسسة'] || '',
+                            commune: row['الجماعة'] || '',
                             visitDate: row['تاريخ الزيارة'] || '',
-                            actual: Number(row['المسجلون فعليا'] || 0),
-                            absent: Number(row['غير الملتحقين'] || 0),
+                            actualRegistered: Number(row['المسجلون فعلياً'] || 0),
+                            nonJoined: Number(row['غير الملتحقين'] || 0),
+                            nonJoinedRate: row['نسبة عدم الالتحاق'] || '0%',
                             q_start: row['انطلاق الدراسة'] || 'نعم',
-                            q_reception: row['استقبال التلاميذ'] || 'نعم',
                             q_tests: row['تمرير الروائز'] || 'نعم',
-                            q_najah: row['جمعية النجاح'] || 'نعم',
-                            q_parents: row['جمعية الآباء'] || 'نعم',
                             q_project: row['مشروع المؤسسة'] || 'نعم',
-                            committee: row['أعضاء اللجنة'] || '',
-                            notes: row['ملاحظات وقرارات'] || ''
+                            committeeMembers: row['أعضاء اللجنة'] || '',
+                            notes: row['الملاحظات'] || ''
                         });
                     });
-                    saveToStorage();
-                    renderReports();
-                    alert('تم استيراد شبكة التتبع بنجاح!');
+
+                    localStorage.setItem('aref_school_reports_data', JSON.stringify(appState.reports));
+                    alert('تم استيراد شبكة المعطيات بنجاح!');
+                    switchView('dashboard');
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        window.onload = renderReports;
+        // Initial Load
+        window.onload = function() {
+            renderDashboardAnalytics();
+        };
     </script>
 </body>
 </html>
