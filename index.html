@@ -1184,5 +1184,25 @@
             reader.readAsArrayBuffer(file);
         }
     </script>
+    <!-- Firebase Configuration & Initialization -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB7n4OzAy-nTQbS5XFymJ9Q4Z_bWVBAhcI",
+    authDomain: "caneva-21ed8.firebaseapp.com",
+    projectId: "caneva-21ed8",
+    storageBucket: "caneva-21ed8.firebasestorage.app",
+    messagingSenderId: "3127565753",
+    appId: "1:3127565753:web:bdae296a87e22a3d086a68",
+    measurementId: "G-M0NP2RZZZP"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  
+  console.log("Firebase connected successfully!");
+</script>
 </body>
 </html>
