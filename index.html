@@ -35,7 +35,7 @@ body{font-family:'Cairo',sans-serif;background:#f1f5f9}
   <button onclick="sv('dash')" id="nb-dash" class="bg-white/10 hover:bg-white/20 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border border-white/20"><i class="fa-solid fa-chart-line text-emerald-300"></i> لوحة القيادة والتحليلات</button>
   <button onclick="sv('form')" id="nb-form" class="bg-emerald-600 hover:bg-emerald-500 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold"><i class="fa-solid fa-pen-to-square"></i> الاستمارة المباشرة</button>
   <button onclick="exportX()" class="bg-teal-600 hover:bg-teal-500 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold"><i class="fa-solid fa-file-excel"></i> تصدير</button>
-  <label class="bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold cursor-pointer"><i class="fa-solid fa-file-import"></i> استيراد<input type="file" accept=".xlsx,.xls" class="hidden" onchange="importX(event)"></label>
+  <label class="bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold cursor-pointer"><i class="fa-solid fa-file-import"></i> استيراد<input type="file" accept=".xlsx,.xls" multiple class="hidden" onchange="importX(event)"></label>
  </div>
 </div>
 </header>
@@ -59,6 +59,7 @@ body{font-family:'Cairo',sans-serif;background:#f1f5f9}
   <div id="fc" class="space-y-6"></div>
   <div class="flex items-center justify-end gap-3">
    <button type="button" onclick="sv('dash')" class="bg-slate-200 hover:bg-slate-300 font-bold px-6 py-2.5 rounded-xl text-sm">إلغاء</button>
+   <button type="button" onclick="exportTpl()" class="bg-amber-500 hover:bg-amber-400 text-white font-bold px-6 py-2.5 rounded-xl text-sm"><i class="fa-solid fa-file-arrow-down"></i> تصدير نموذج فارغ (السلك المختار)</button>
    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-2.5 rounded-xl text-sm shadow-lg"><i class="fa-solid fa-floppy-disk"></i> حفظ شبكة التتبع بالكامل</button>
   </div>
  </form>
@@ -184,12 +185,13 @@ function addCm(){$('#cmc').insertAdjacentHTML('beforeend',`<input class="cm ip" 
 /* ---------- state / render ---------- */
 const snap=()=>{const d={};$$('#fc [data-k]').forEach(e=>{if(e.value!=='')d[e.dataset.k]=e.value});return{d,cm:$$('.cm').map(e=>e.value),pb:$$('.pbr').map(r=>[...r.querySelectorAll('input')].map(i=>i.value))}};
 const v=k=>{const e=$(`[data-k="${k}"]`);return e?+e.value||0:0},put=(k,x)=>{const e=$(`[data-k="${k}"]`);if(e)e.value=x},auto=(k,x)=>{const e=$(`[data-k="${k}"]`);if(e&&!e.dataset.d)e.value=x};
-function render(keep){const c=CY[cur],s=keep?snap():null;
+function render(keep){const c=CY[cur],s=keep===true?snap():(keep||null);
  $('#fc').innerHTML=[sGen(c),sStu(c),sCls(c),sHR(c),c.board?sBoard():'',sSup(),sGov(c),sBlk(),sBld(c),sPb()].join('');
  if(s){Object.entries(s.d).forEach(([k,x])=>put(k,x));s.cm.forEach((x,i)=>{if(i>=$$('.cm').length)addCm();$$('.cm')[i].value=x});
   s.pb.forEach((r,i)=>{if(i>=$$('.pbr').length)$('#pbb').insertAdjacentHTML('beforeend',pbRow());$$('.pbr')[i].querySelectorAll('input').forEach((el,j)=>el.value=r[j]||'')})}
  recalc()}
-function setCy(y){cur=y;$$('.lvl').forEach(b=>b.classList.remove('on'));$('#cy-'+y).classList.add('on');render(true)}
+const hl=()=>$$('.lvl').forEach(b=>b.classList.toggle('on',b.id=='cy-'+cur));
+function setCy(y){cur=y;hl();render(true)}
 
 const sum=(p,n,f)=>{let s=0;for(let i=0;i<n;i++)s+=v(`${p}_${i}_${f}`);return s};
 function recalc(){const c=CY[cur];
@@ -209,8 +211,8 @@ $('#fc').addEventListener('input',e=>{if(e.target.dataset.auto)e.target.dataset.
 /* ---------- views / data ---------- */
 function sv(w){const f=w=='form';$('#form-view').classList.toggle('hidden',!f);$('#dash-view').classList.toggle('hidden',f);$('#selbar').classList.toggle('hidden',!f);if(!f)dash()}
 const persist=()=>localStorage.setItem('aref_school_reports_data',JSON.stringify(st.reports));
-function save(e){e.preventDefault();const s=snap(),d=s.d,lab={};Object.keys(d).forEach(k=>lab[k]=FL[k]||k);
- st.reports.push({id:Date.now(),directorate:st.dir,level:CY[cur].n,schoolName:d.school||'',commune:d.commune||'',visitDate:d.vdate||'',actualRegistered:+d.s_t_reg||0,nonJoined:+d.s_t_abs||0,nonJoinedRate:d.s_t_rate||'0%',q_tests:d.b_tests||'',q_project:d.b_project||'',committeeMembers:s.cm.filter(Boolean).join(' - '),notes:d.notes||'',d,lab,problems:s.pb.filter(p=>p.some(Boolean))});
+const mk=(s,dir,y)=>{const d=s.d,lab={};Object.keys(d).forEach(k=>lab[k]=FL[k]||k);return{id:Date.now()+(mk.n=(mk.n||0)+1),directorate:dir,level:CY[y].n,schoolName:d.school||'',commune:d.commune||'',visitDate:d.vdate||'',actualRegistered:+d.s_t_reg||0,nonJoined:+d.s_t_abs||0,nonJoinedRate:d.s_t_rate||'0%',q_tests:d.b_tests||'',q_project:d.b_project||'',committeeMembers:s.cm.filter(Boolean).join(' - '),notes:d.notes||'',d,lab,problems:s.pb.filter(p=>p.some(Boolean))}};
+function save(e){e.preventDefault();st.reports.push(mk(snap(),st.dir,cur));
  persist();alert('تم حفظ تقرير شبكة الدخول المدرسي بنجاح!');render(false);sv('dash')}
 function dash(){const fv=$('#fd').value,R=st.reports.filter(r=>!fv||r.directorate==fv),sel=$('#fs').value;let a=0,b=0,ty=0,tn=0;
  $('#fs').innerHTML='<option value="">— اختر المؤسسة —</option>'+R.map(r=>`<option value="${r.id}">${r.schoolName||'بدون اسم'} (${r.level}${r.visitDate?' - '+r.visitDate:''})</option>`).join('');$('#fs').value=R.some(r=>String(r.id)==sel)?sel:'';
@@ -235,9 +237,57 @@ function exportOne(id){const r=st.reports.find(x=>String(x.id)==String(id));if(!
  const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:70},{wch:50}];ws['!views']=[{RTL:true}];
  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'شبكة المؤسسة');
  XLSX.writeFile(wb,('شبكة_'+(r.schoolName||'مؤسسة')).replace(/[\\/:*?"<>|]/g,'_')+'.xlsx')}
-function importX(ev){const f=ev.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=e=>{const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'}),j=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
- j.forEach((r,i)=>st.reports.push({id:Date.now()+i,directorate:r['المديرية']||'مديرية مراكش',level:r['السلك']||'الابتدائي',schoolName:r['اسم المؤسسة']||'',commune:r['الجماعة']||'',visitDate:r['تاريخ الزيارة']||'',actualRegistered:Number(r['المسجلون فعليا']||r['المسجلون فعليا']||0),nonJoined:Number(r['غير الملتحقين']||0),nonJoinedRate:r['نسبة عدم الالتحاق']||'0%',q_tests:r['تمرير الروائز']||'',q_project:r['مشروع المؤسسة']||'',committeeMembers:r['أعضاء اللجنة']||'',notes:r['الملاحظات']||''}));
- if(j.length){persist();alert('تم استيراد شبكة المعطيات بنجاح!');sv('dash')}};rd.readAsArrayBuffer(f)}
+function exportTpl(){const c=CY[cur],rows=[],mp=[['cycle',cur]],mg=[],A=(r,k)=>XLSX.utils.encode_cell({r,c:k});
+ const kind=e=>e.tagName=='SELECT'?'select':e.type=='number'?'number':e.type=='date'?'date':'text';
+ const hint=e=>e.tagName=='SELECT'?'القيم: '+[...e.options].map(o=>o.text).filter(t=>t!='—').join(' / '):e.type=='date'?'التاريخ بصيغة 2026-10-01':e.type=='number'?'رقم':'';
+ const fld=(l,e)=>{mp.push([A(rows.length,1),e.dataset.k,kind(e)]);rows.push([l,'',hint(e)])};
+ const tbl=t=>{const th=[...t.querySelectorAll('thead th')].map(x=>x.textContent.trim());
+  if(t.querySelector('#pbb')){rows.push(th);for(let i=0;i<8;i++){const r=[];for(let j=0;j<4;j++){mp.push([A(rows.length,j),`__pb_${i}_${j}`,'text']);r.push('')}rows.push(r)}return}
+  const hs=!!t.querySelector('select');rows.push(hs?[...th,'القيم المقبولة']:th);
+  t.querySelectorAll('tbody tr').forEach(tr=>{const ri=rows.length,r=[];let h='';
+   [...tr.children].forEach((td,j)=>{const e=td.querySelector('[data-k]');
+    if(!e)r.push(td.textContent.trim());else if(e.readOnly)r.push('(آلي)');
+    else{mp.push([A(ri,j),e.dataset.k,kind(e)]);r.push('');if(e.tagName=='SELECT'&&!h)h=hint(e)}});
+   if(hs)r.push(h);rows.push(r)})};
+ const walk=el=>[...el.children].forEach(x=>{
+  if(x.tagName=='TABLE')return tbl(x);if(x.tagName=='BUTTON')return;
+  if(x.tagName=='H3')return rows.push([x.textContent.trim()]);
+  if(x.id=='cmc'){rows.push(['أسماء أعضاء لجنة الزيارة الميدانية']);for(let i=0;i<6;i++){mp.push([A(rows.length,1),'__cm_'+i,'text']);rows.push(['عضو اللجنة '+(i+1),''])}return}
+  if(x.children.length==2&&x.children[0].matches('label.lb')&&x.children[1].dataset.k)return fld(x.children[0].textContent.trim(),x.children[1]);
+  const sp=x.querySelector(':scope > span'),se=x.querySelector(':scope > select[data-k]');
+  if(sp&&se)return fld(sp.textContent.trim().replace(/:$/,''),se);
+  walk(x)});
+ rows.push(['نموذج شبكة تتبع الدخول المدرسي - السلك '+c.n]);
+ rows.push(['تعليمات: املأ الخانات الفارغة فقط، ولا تغيّر ترتيب الصفوف والأعمدة ولا أسماء البنود. الخانات المكتوب فيها (آلي) تُحسب تلقائيا. ثم أرجع الملف عبر زر «استيراد» في الصفحة.']);
+ mp.push([A(rows.length,1),'__dir','select']);rows.push(['المديرية الإقليمية','','القيم: '+$$('#dirsel option').map(o=>o.value).join(' / ')]);
+ $$('#fc > section').forEach(sec=>{rows.push([]);mg.push({s:{r:rows.length,c:0},e:{r:rows.length,c:8}});rows.push([sec.querySelector('span').textContent]);walk(sec.children[1])});
+ const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:60},...Array(9).fill({wch:18})];ws['!merges']=mg;ws['!views']=[{RTL:true}];
+ const ks=XLSX.utils.aoa_to_sheet(mp),wb=XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(wb,ws,'الاستمارة');XLSX.utils.book_append_sheet(wb,ks,'_keys');wb.Workbook={Sheets:[{Hidden:0},{Hidden:1}]};
+ XLSX.writeFile(wb,'نموذج_شبكة_'+c.n+'.xlsx')}
+const rd1=f=>new Promise(ok=>{const r=new FileReader();r.onload=e=>ok(XLSX.read(new Uint8Array(e.target.result),{type:'array'}));r.readAsArrayBuffer(f)});
+function importTpl(wb){const ks=XLSX.utils.sheet_to_json(wb.Sheets['_keys'],{header:1}),ws=wb.Sheets[wb.SheetNames[0]],y=(ks[0]||[])[1];
+ if(!CY[y]||!ws)return 0;const d={},cm=[],pb=[];let dir=st.dir;
+ ks.slice(1).forEach(([a,k,t])=>{const c=ws[a];if(!c||c.v===undefined)return;let x=c.v;
+  if(typeof x=='number'&&t=='date')x=new Date(Math.round((x-25569)*864e5)).toISOString().slice(0,10);
+  else if(t=='number'){const n=Number(String(x).replace(',','.'));x=isNaN(n)?'':String(n)}else x=String(x).trim();
+  if(x==='')return;
+  if(k=='__dir'){if($$('#dirsel option').some(o=>o.value==x))dir=x}
+  else if(k.startsWith('__cm_'))cm.push(x);
+  else if(k.startsWith('__pb_')){const [i,j]=k.slice(5).split('_');(pb[+i]=pb[+i]||['','','',''])[+j]=x}
+  else d[k]=x});
+ const prev=snap(),pc=cur;cur=y;render(false);
+ Object.entries(d).forEach(([k,x])=>{const e=$(`[data-k="${k}"]`);if(e){e.value=x;if(e.dataset.auto)e.dataset.d=1}});
+ cm.forEach((x,i)=>{if(i>=$$('.cm').length)addCm();$$('.cm')[i].value=x});
+ pb.filter(Boolean).forEach((r,i)=>{if(i>=$$('.pbr').length)$('#pbb').insertAdjacentHTML('beforeend',pbRow());$$('.pbr')[i].querySelectorAll('input').forEach((el,j)=>el.value=r[j]||'')});
+ recalc();st.reports.push(mk(snap(),dir,y));
+ cur=pc;hl();render(prev);return 1}
+function importSummary(wb){const j=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+ j.forEach((r,i)=>st.reports.push({id:Date.now()+i,directorate:r['المديرية']||'مديرية مراكش',level:r['السلك']||'الابتدائي',schoolName:r['اسم المؤسسة']||'',commune:r['الجماعة']||'',visitDate:r['تاريخ الزيارة']||'',actualRegistered:Number(r['المسجلون فعليا']||0),nonJoined:Number(r['غير الملتحقين']||0),nonJoinedRate:r['نسبة عدم الالتحاق']||'0%',q_tests:r['تمرير الروائز']||'',q_project:r['مشروع المؤسسة']||'',committeeMembers:r['أعضاء اللجنة']||'',notes:r['الملاحظات']||''}));
+ return j.length}
+async function importX(ev){const fs=[...ev.target.files];ev.target.value='';let n=0;
+ for(const f of fs){try{const wb=await rd1(f);n+=wb.Sheets['_keys']?importTpl(wb):importSummary(wb)}catch(e){console.error(e)}}
+ if(n){persist();alert('تم استيراد '+n+' شبكة بنجاح!');sv('dash')}else alert('لم يتم التعرف على محتوى الملف.')}
 window.onload=()=>{render(false);dash();sv('form')};
 </script>
 </body>
