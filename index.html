@@ -49,8 +49,11 @@
                 
                 <!-- Logo & Title Section -->
                 <div class="flex items-center gap-4">
-                    <div class="bg-white p-2 rounded-xl shadow-md hidden sm:block">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Kingdom_of_Morocco_Coat_of_Arms.svg/1200px-Kingdom_of_Morocco_Coat_of_Arms.svg.png" alt="Logo Royaume" class="h-12 w-auto">
+                    <!-- شعار الأكاديمية المصحح والمحسّن -->
+                    <div class="bg-white p-1.5 rounded-xl shadow-md hidden sm:block flex items-center justify-center">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Kingdom_of_Morocco_Coat_of_Arms.svg/1200px-Kingdom_of_Morocco_Coat_of_Arms.svg.png" 
+                             alt="شعار الأكاديمية الجهوية" 
+                             class="h-12 w-auto object-contain">
                     </div>
                     <div>
                         <h1 class="text-xl sm:text-2xl font-extrabold tracking-wide text-white flex items-center gap-2">
@@ -60,24 +63,24 @@
                     </div>
                 </div>
 
-                <!-- Navigation Controls -->
-                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                    <button onclick="switchView('dashboard')" id="nav-dashboard-btn" class="bg-white/10 hover:bg-white/20 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 border border-white/20">
+                <!-- Navigation Controls (تراصف جميع الأزرار وزر استيراد في صف واحد) -->
+                <div class="flex items-center gap-2 sm:gap-3 flex-nowrap overflow-x-auto max-w-full py-1">
+                    <button onclick="switchView('dashboard')" id="nav-dashboard-btn" class="bg-white/10 hover:bg-white/20 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 border border-white/20 whitespace-nowrap">
                         <i class="fa-solid fa-chart-line text-emerald-300"></i>
                         <span>لوحة القيادة والتحليلات</span>
                     </button>
 
-                    <button onclick="switchView('form')" id="nav-form-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 shadow-md">
+                    <button onclick="switchView('form')" id="nav-form-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 shadow-md whitespace-nowrap">
                         <i class="fa-solid fa-pen-to-square"></i>
                         <span>الاستمارة المباشرة</span>
                     </button>
 
-                    <button onclick="exportExcelData()" class="bg-teal-600 hover:bg-teal-500 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 shadow-md">
+                    <button onclick="exportExcelData()" class="bg-teal-600 hover:bg-teal-500 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 shadow-md whitespace-nowrap">
                         <i class="fa-solid fa-file-excel"></i>
                         <span>تصدير</span>
                     </button>
 
-                    <label class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 shadow-md cursor-pointer">
+                    <label class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 shadow-md cursor-pointer whitespace-nowrap">
                         <i class="fa-solid fa-file-import"></i>
                         <span>استيراد</span>
                         <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="hidden" onchange="importExcelData(event)">
@@ -181,7 +184,23 @@
                             </div>
                         </div>
 
-                        <!-- Inspector Visits Section -->
+                        <!-- Committee Members Dynamic Input (تم التقديم لتصبح قبل زيارات المفتشين) -->
+                        <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <label class="block text-xs font-bold text-slate-700 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-users text-emerald-600"></i>
+                                    <span>أسماء أعضاء لجنة الزيارة الميدانية:</span>
+                                </span>
+                                <button type="button" onclick="addCommitteeMemberInput()" class="text-xs bg-emerald-100 text-emerald-800 hover:bg-emerald-200 px-3 py-1 rounded-lg font-bold transition">
+                                    + إضافة اسم عضو لجنة
+                                </button>
+                            </label>
+                            <div id="committee-members-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <input type="text" class="committee-member-field border border-slate-300 rounded-xl p-2 text-sm bg-white" placeholder="اسم المفتش أو إطار اللجنة (1)">
+                            </div>
+                        </div>
+
+                        <!-- Inspector Visits Section (تم التأخير لتصبح بعد أعضاء اللجنة) -->
                         <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 space-y-3">
                             <h3 class="font-bold text-xs text-indigo-900 flex items-center gap-1.5">
                                 <i class="fa-solid fa-user-check text-indigo-600"></i>
@@ -202,21 +221,6 @@
                             </div>
                         </div>
 
-                        <!-- Committee Members Dynamic Input -->
-                        <div class="space-y-3">
-                            <label class="block text-xs font-bold text-slate-700 flex items-center justify-between">
-                                <span class="flex items-center gap-1.5">
-                                    <i class="fa-solid fa-users text-slate-500"></i>
-                                    <span>أسماء أعضاء لجنة الزيارة الميدانية:</span>
-                                </span>
-                                <button type="button" onclick="addCommitteeMemberInput()" class="text-xs bg-emerald-100 text-emerald-800 hover:bg-emerald-200 px-3 py-1 rounded-lg font-bold transition">
-                                    + إضافة اسم عضو لجنة
-                                </button>
-                            </label>
-                            <div id="committee-members-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <input type="text" class="committee-member-field border border-slate-300 rounded-xl p-2 text-sm" placeholder="اسم المفتش أو أطار اللجنة (1)">
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -718,7 +722,7 @@
             const count = container.children.length + 1;
             const input = document.createElement('input');
             input.type = 'text';
-            input.className = 'committee-member-field border border-slate-300 rounded-xl p-2 text-sm';
+            input.className = 'committee-member-field border border-slate-300 rounded-xl p-2 text-sm bg-white';
             input.placeholder = `اسم العضو (${count})`;
             container.appendChild(input);
         }
