@@ -7,6 +7,8 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -32,6 +34,7 @@ body{font-family:'Cairo',sans-serif;background:#f1f5f9}
   <p class="text-xs sm:text-sm text-emerald-200 font-semibold">المنظومة الرقمية لملء وتعديل وتدبير شبكة تتبع الدخول المدرسي</p></div>
  </div>
  <div class="flex items-center gap-2 flex-wrap justify-center">
+  <span id="sync" class="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-amber-500">● جار الاتصال...</span>
   <button onclick="sv('dash')" id="nb-dash" class="bg-white/10 hover:bg-white/20 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border border-white/20"><i class="fa-solid fa-chart-line text-emerald-300"></i> لوحة القيادة والتحليلات</button>
   <button onclick="sv('form')" id="nb-form" class="bg-emerald-600 hover:bg-emerald-500 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold"><i class="fa-solid fa-pen-to-square"></i> الاستمارة المباشرة</button>
   <button onclick="exportX()" class="bg-teal-600 hover:bg-teal-500 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold"><i class="fa-solid fa-file-excel"></i> تصدير</button>
@@ -41,6 +44,7 @@ body{font-family:'Cairo',sans-serif;background:#f1f5f9}
 </header>
 
 <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-grow w-full space-y-6">
+<div id="syncmsg" class="hidden no-print bg-red-50 border border-red-200 text-red-800 rounded-xl p-3 text-sm font-semibold"></div>
 <div id="selbar" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 no-print grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
  <div class="lg:col-span-4"><label class="lb"><i class="fa-solid fa-map-location-dot text-emerald-600"></i> المديرية الإقليمية:</label>
  <select id="dirsel" onchange="st.dir=this.value" class="ip font-bold">
@@ -92,7 +96,8 @@ body{font-family:'Cairo',sans-serif;background:#f1f5f9}
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],FL={};
 let cur='primaire',dirC,pieC;
-const st={dir:'مديرية مراكش',reports:(()=>{try{return JSON.parse(localStorage.getItem('aref_school_reports_data'))||[]}catch(e){return[]}})()};
+const rj=k=>{try{return JSON.parse(localStorage.getItem(k))||[]}catch(e){return[]}};
+const st={dir:'مديرية مراكش',reports:rj('aref_cloud_cache').length?rj('aref_cloud_cache'):rj('aref_school_reports_data')};
 const YN=['نعم','لا'],AV=['متوفر','غير متوفر'];
 $('#fd').innerHTML='<option value="">جميع المديريات</option>'+$$('#dirsel option').map(o=>`<option>${o.value||o.text}</option>`).join('');
 const opt=o=>'<option value="">—</option>'+o.map(v=>`<option>${v}</option>`).join('');
@@ -210,10 +215,37 @@ $('#fc').addEventListener('input',e=>{if(e.target.dataset.auto)e.target.dataset.
 
 /* ---------- views / data ---------- */
 function sv(w){const f=w=='form';$('#form-view').classList.toggle('hidden',!f);$('#dash-view').classList.toggle('hidden',f);$('#selbar').classList.toggle('hidden',!f);if(!f)dash()}
-const persist=()=>localStorage.setItem('aref_school_reports_data',JSON.stringify(st.reports));
-const mk=(s,dir,y)=>{const d=s.d,lab={};Object.keys(d).forEach(k=>lab[k]=FL[k]||k);return{id:Date.now()+(mk.n=(mk.n||0)+1),directorate:dir,level:CY[y].n,schoolName:d.school||'',commune:d.commune||'',visitDate:d.vdate||'',actualRegistered:+d.s_t_reg||0,nonJoined:+d.s_t_abs||0,nonJoinedRate:d.s_t_rate||'0%',q_tests:d.b_tests||'',q_project:d.b_project||'',committeeMembers:s.cm.filter(Boolean).join(' - '),notes:d.notes||'',d,lab,problems:s.pb.filter(p=>p.some(Boolean))}};
-function save(e){e.preventDefault();st.reports.push(mk(snap(),st.dir,cur));
- persist();alert('تم حفظ تقرير شبكة الدخول المدرسي بنجاح!');render(false);sv('dash')}
+
+/* ---------- Firebase: قاعدة البيانات السحابية (Firestore) ---------- */
+const firebaseConfig={apiKey:"AIzaSyB7n4OzAy-nTQbS5XFymJ9Q4Z_bWVBAhcI",authDomain:"caneva-21ed8.firebaseapp.com",projectId:"caneva-21ed8",storageBucket:"caneva-21ed8.firebasestorage.app",messagingSenderId:"3127565753",appId:"1:3127565753:web:bdae296a87e22a3d086a68"};
+const COL='reports',pend=[];let db=null,mig=false;
+const persist=()=>{try{localStorage.setItem('aref_cloud_cache',JSON.stringify(st.reports))}catch(e){}};
+function setSync(k,msg){const b=$('#sync'),m=$('#syncmsg'),x={on:['bg-emerald-500','● متصل بالسحابة'],wait:['bg-amber-500','● جار المزامنة...'],off:['bg-red-500','● غير متصل بالسحابة']}[k];
+ b.className='px-3 py-1.5 rounded-xl text-xs font-bold text-white '+x[0];b.textContent=x[1];b.title=msg||'';
+ m.textContent=k=='off'&&msg?msg:'';m.classList.toggle('hidden',!(k=='off'&&msg))}
+function cloudErr(e){const c=(e&&e.code)||'';
+ setSync('off',c=='permission-denied'?'تم رفض الوصول إلى قاعدة البيانات: عدّل قواعد Firestore (تبويب Rules / القواعد) للسماح بالقراءة والكتابة على المجموعة reports.':c=='unavailable'?'لا يوجد اتصال بالإنترنت، ستُرفع المعطيات تلقائيا عند عودة الاتصال.':'خطأ في الاتصال بقاعدة البيانات ('+c+'): '+((e&&e.message)||''))}
+try{if(typeof firebase=='undefined')throw new Error('تعذر تحميل مكتبة Firebase (تحقق من الإنترنت أو من مانع الإعلانات).');
+ firebase.initializeApp(firebaseConfig);db=firebase.firestore();try{db.enablePersistence({synchronizeTabs:true}).catch(()=>{})}catch(e){}}catch(e){db=null;setSync('off',e.message)}
+const toDoc=r=>({id:r.id,directorate:r.directorate||'',level:r.level||'',schoolName:r.schoolName||'',visitDate:r.visitDate||'',ts:firebase.firestore.FieldValue.serverTimestamp(),json:JSON.stringify(r)});
+async function cloudSet(r){if(!db)return false;try{const p=db.collection(COL).doc(String(r.id)).set(toDoc(r));p.catch(()=>{});return await Promise.race([p.then(()=>true),new Promise(ok=>setTimeout(()=>ok(false),8000))])}catch(e){cloudErr(e);return false}}
+const cloudDel=id=>{if(db)db.collection(COL).doc(String(id)).delete().catch(cloudErr)};
+function addReport(r){st.reports.push(r);persist();const p=cloudSet(r);pend.push(p);return p}
+function migrate(have){if(mig||localStorage.getItem('aref_migrated'))return;mig=true;
+ const old=rj('aref_school_reports_data').filter(r=>r&&r.id&&!have.has(String(r.id)));
+ if(!old.length){localStorage.setItem('aref_migrated','1');return}
+ Promise.all(old.map(cloudSet)).then(rs=>{mig=false;if(rs.every(Boolean)){localStorage.setItem('aref_migrated','1');alert('تم رفع '+old.length+' تقرير كان محفوظا على هذا الجهاز إلى قاعدة البيانات السحابية.')}})}
+function listen(){if(!db)return;setSync('wait');
+ db.collection(COL).onSnapshot({includeMetadataChanges:true},s=>{
+  st.reports=s.docs.map(d=>{try{return JSON.parse(d.data().json)}catch(e){return null}}).filter(Boolean).sort((a,b)=>(a.id||0)-(b.id||0));persist();
+  if(s.metadata.fromCache)setSync(navigator.onLine?'wait':'off',navigator.onLine?'':'لا يوجد اتصال بالإنترنت، تُعرض النسخة المحفوظة على هذا الجهاز.');
+  else{setSync('on');migrate(new Set(st.reports.map(r=>String(r.id))))}
+  if(!$('#dash-view').classList.contains('hidden'))dash()},cloudErr);
+ addEventListener('offline',()=>setSync('off','لا يوجد اتصال بالإنترنت.'));addEventListener('online',()=>setSync('wait'))}
+const mk=(s,dir,y)=>{const d=s.d,lab={};Object.keys(d).forEach(k=>lab[k]=FL[k]||k);return{id:Date.now()*1000+Math.floor(Math.random()*1000),directorate:dir,level:CY[y].n,schoolName:d.school||'',commune:d.commune||'',visitDate:d.vdate||'',actualRegistered:+d.s_t_reg||0,nonJoined:+d.s_t_abs||0,nonJoinedRate:d.s_t_rate||'0%',q_tests:d.b_tests||'',q_project:d.b_project||'',committeeMembers:s.cm.filter(Boolean).join(' - '),notes:d.notes||'',d,lab,problems:s.pb.filter(p=>p.some(Boolean))}};
+async function save(e){e.preventDefault();const b=e.submitter;if(b)b.disabled=true;const ok=await addReport(mk(snap(),st.dir,cur));if(b)b.disabled=false;
+ alert(ok?'تم حفظ التقرير في قاعدة البيانات السحابية بنجاح!':db?'تم حفظ التقرير على هذا الجهاز، لكن لم يتأكد رفعه إلى السحابة. سيُرفع تلقائيا عند عودة الاتصال، راجع حالة الاتصال أعلى الصفحة.':'تم حفظ التقرير على هذا الجهاز فقط (قاعدة البيانات السحابية غير متاحة).');
+ render(false);sv('dash')}
 function dash(){const fv=$('#fd').value,R=st.reports.filter(r=>!fv||r.directorate==fv),sel=$('#fs').value;let a=0,b=0,ty=0,tn=0;
  $('#fs').innerHTML='<option value="">— اختر المؤسسة —</option>'+R.map(r=>`<option value="${r.id}">${r.schoolName||'بدون اسم'} (${r.level}${r.visitDate?' - '+r.visitDate:''})</option>`).join('');$('#fs').value=R.some(r=>String(r.id)==sel)?sel:'';
  R.forEach(r=>{a+=r.actualRegistered||0;b+=r.nonJoined||0;if(r.q_tests=='نعم')ty++;else if(r.q_tests=='لا')tn++});
@@ -223,8 +255,11 @@ function dash(){const fv=$('#fd').value,R=st.reports.filter(r=>!fv||r.directorat
  dirC&&dirC.destroy();pieC&&pieC.destroy();
  dirC=new Chart($('#ch1'),{type:'bar',data:{labels:Object.keys(m).length?Object.keys(m):['لا توجد معطيات'],datasets:[{label:'المسجلون فعليا',data:Object.keys(m).length?Object.values(m):[0],backgroundColor:'#059669',borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
  pieC=new Chart($('#ch2'),{type:'doughnut',data:{labels:['تمرير الروائز (نعم)','لم يتم التمرير (لا)'],datasets:[{data:[ty,tn],backgroundColor:['#0d9488','#f43f5e']}]},options:{responsive:true,maintainAspectRatio:false}})}
-function del(id){if(confirm('هل أنت متأكد من حذف هذا السجل؟')){st.reports=st.reports.filter(r=>r.id!==id);persist();dash()}}
-function clearAll(){if(confirm('هل أنت متأكد من مسح جميع التقارير؟ لا يمكن التراجع عن هذه الخطوة.')){st.reports=[];localStorage.removeItem('aref_school_reports_data');dash()}}
+function del(id){if(confirm('هل أنت متأكد من حذف هذا السجل؟ سيُحذف من قاعدة البيانات لدى جميع المستخدمين.')){st.reports=st.reports.filter(r=>r.id!==id);persist();cloudDel(id);dash()}}
+async function clearAll(){if(prompt('تحذير: سيتم حذف جميع التقارير نهائيا من قاعدة البيانات لدى جميع المستخدمين.\nلتأكيد الحذف اكتب كلمة: حذف')!=='حذف')return;
+ st.reports=[];persist();
+ if(db){try{const s=await db.collection(COL).get();for(let i=0;i<s.docs.length;i+=400){const b=db.batch();s.docs.slice(i,i+400).forEach(d=>b.delete(d.ref));await b.commit()}}catch(e){cloudErr(e)}}
+ dash()}
 function exportX(){if(!st.reports.length)return alert('لا توجد تقارير لتصديرها.');
  const a=st.reports.map(r=>({'المديرية':r.directorate,'السلك':r.level,'اسم المؤسسة':r.schoolName,'الجماعة':r.commune,'تاريخ الزيارة':r.visitDate,'المسجلون فعليا':r.actualRegistered,'غير الملتحقين':r.nonJoined,'نسبة عدم الالتحاق':r.nonJoinedRate,'تمرير الروائز':r.q_tests,'مشروع المؤسسة':r.q_project,'أعضاء اللجنة':r.committeeMembers,'الملاحظات':r.notes}));
  const b=st.reports.map(r=>{const o={'المديرية':r.directorate,'السلك':r.level};Object.entries(r.d||{}).forEach(([k,x])=>o[(r.lab||{})[k]||k]=x);(r.problems||[]).forEach((p,i)=>o['مشكل '+(i+1)]=p.join(' | '));return o});
@@ -280,15 +315,17 @@ function importTpl(wb){const ks=XLSX.utils.sheet_to_json(wb.Sheets['_keys'],{hea
  Object.entries(d).forEach(([k,x])=>{const e=$(`[data-k="${k}"]`);if(e){e.value=x;if(e.dataset.auto)e.dataset.d=1}});
  cm.forEach((x,i)=>{if(i>=$$('.cm').length)addCm();$$('.cm')[i].value=x});
  pb.filter(Boolean).forEach((r,i)=>{if(i>=$$('.pbr').length)$('#pbb').insertAdjacentHTML('beforeend',pbRow());$$('.pbr')[i].querySelectorAll('input').forEach((el,j)=>el.value=r[j]||'')});
- recalc();st.reports.push(mk(snap(),dir,y));
+ recalc();addReport(mk(snap(),dir,y));
  cur=pc;hl();render(prev);return 1}
 function importSummary(wb){const j=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
- j.forEach((r,i)=>st.reports.push({id:Date.now()+i,directorate:r['المديرية']||'مديرية مراكش',level:r['السلك']||'الابتدائي',schoolName:r['اسم المؤسسة']||'',commune:r['الجماعة']||'',visitDate:r['تاريخ الزيارة']||'',actualRegistered:Number(r['المسجلون فعليا']||0),nonJoined:Number(r['غير الملتحقين']||0),nonJoinedRate:r['نسبة عدم الالتحاق']||'0%',q_tests:r['تمرير الروائز']||'',q_project:r['مشروع المؤسسة']||'',committeeMembers:r['أعضاء اللجنة']||'',notes:r['الملاحظات']||''}));
+ j.forEach((r,i)=>addReport({id:Date.now()*1000+i,directorate:r['المديرية']||'مديرية مراكش',level:r['السلك']||'الابتدائي',schoolName:r['اسم المؤسسة']||'',commune:r['الجماعة']||'',visitDate:r['تاريخ الزيارة']||'',actualRegistered:Number(r['المسجلون فعليا']||0),nonJoined:Number(r['غير الملتحقين']||0),nonJoinedRate:r['نسبة عدم الالتحاق']||'0%',q_tests:r['تمرير الروائز']||'',q_project:r['مشروع المؤسسة']||'',committeeMembers:r['أعضاء اللجنة']||'',notes:r['الملاحظات']||''}));
  return j.length}
 async function importX(ev){const fs=[...ev.target.files];ev.target.value='';let n=0;
  for(const f of fs){try{const wb=await rd1(f);n+=wb.Sheets['_keys']?importTpl(wb):importSummary(wb)}catch(e){console.error(e)}}
- if(n){persist();alert('تم استيراد '+n+' شبكة بنجاح!');sv('dash')}else alert('لم يتم التعرف على محتوى الملف.')}
-window.onload=()=>{render(false);dash();sv('form')};
+ if(!n)return alert('لم يتم التعرف على محتوى الملف.');
+ const ok=(await Promise.all(pend.splice(0))).every(Boolean);persist();
+ alert('تم استيراد '+n+' شبكة بنجاح'+(db?(ok?' وحُفظت في قاعدة البيانات السحابية!':'، لكن لم يتأكد رفع بعضها إلى السحابة وستُرفع تلقائيا عند عودة الاتصال.'):'.'));sv('dash')}
+window.onload=()=>{render(false);dash();sv('form');listen()};
 </script>
 </body>
 </html>
