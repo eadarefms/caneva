@@ -1183,26 +1183,36 @@
             };
             reader.readAsArrayBuffer(file);
         }
-    </script>
-    <!-- Firebase Configuration & Initialization -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyB7n4OzAy-nTQbS5XFymJ9Q4Z_bWVBAhcI",
-    authDomain: "caneva-21ed8.firebaseapp.com",
-    projectId: "caneva-21ed8",
-    storageBucket: "caneva-21ed8.firebasestorage.app",
-    messagingSenderId: "3127565753",
-    appId: "1:3127565753:web:bdae296a87e22a3d086a68",
-    measurementId: "G-M0NP2RZZZP"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  
-  console.log("Firebase connected successfully!");
-</script>
-</body>
-</html>
+   1186 |    </script>
+1187 |    <!-- Firebase Configuration & Firestore Setup -->
+1188 |    <script type="module">
+1189 |      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+1190 |      import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+1191 |      import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+1192 |
+1193 |      const firebaseConfig = {
+1194 |        apiKey: "AIzaSyB7n4OzAy-nTQbS5XFymJ9Q4Z_bWVBAhcI",
+1195 |        authDomain: "caneva-21ed8.firebaseapp.com",
+1196 |        projectId: "caneva-21ed8",
+1197 |        storageBucket: "caneva-21ed8.firebasestorage.app",
+1198 |        messagingSenderId: "3127565753",
+1199 |        appId: "1:3127565753:web:bdae296a87e22a3d086a68",
+1200 |        measurementId: "G-M0NP2RZZZP"
+1201 |      };
+1202 |
+1203 |      const app = initializeApp(firebaseConfig);
+1204 |      const analytics = getAnalytics(app);
+1205 |      
+1206 |      // Instance Firestore
+1207 |      const db = getFirestore(app);
+1208 |
+1209 |      // Rendre les fonctions accessibles globalement
+1210 |      window.db = db;
+1211 |      window.collection = collection;
+1212 |      window.addDoc = addDoc;
+1213 |      window.getDocs = getDocs;
+1214 |
+1215 |      console.log("Firestore connecté avec succès !");
+1216 |    </script>
+1217 |  </body>
+1218 |</html>
