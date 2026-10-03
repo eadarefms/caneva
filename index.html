@@ -41,7 +41,7 @@ body{font-family:'Cairo',sans-serif;background:#f1f5f9}
 </header>
 
 <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-grow w-full space-y-6">
-<div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 no-print grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+<div id="selbar" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 no-print grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
  <div class="lg:col-span-4"><label class="lb"><i class="fa-solid fa-map-location-dot text-emerald-600"></i> المديرية الإقليمية:</label>
  <select id="dirsel" onchange="st.dir=this.value" class="ip font-bold">
   <option>مديرية مراكش</option><option>مديرية آسفي</option><option>مديرية الحوز</option><option>مديرية قلعة السراغنة</option><option>مديرية الصويرة</option><option>مديرية شيشاوة</option><option>مديرية الرحامنة</option><option>مديرية اليوسفية</option>
@@ -65,6 +65,11 @@ body{font-family:'Cairo',sans-serif;background:#f1f5f9}
 </div>
 
 <div id="dash-view" class="hidden space-y-6">
+ <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 lg:grid-cols-12 gap-3 items-end no-print">
+  <div class="lg:col-span-3"><label class="lb"><i class="fa-solid fa-map-location-dot text-emerald-600"></i> المديرية الإقليمية:</label><select id="fd" onchange="dash()" class="ip font-bold"></select></div>
+  <div class="lg:col-span-6"><label class="lb"><i class="fa-solid fa-school text-emerald-600"></i> المؤسسة:</label><select id="fs" class="ip"></select></div>
+  <div class="lg:col-span-3"><button type="button" onclick="exportOne($('#fs').value)" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-2.5 rounded-xl text-sm"><i class="fa-solid fa-file-excel"></i> تصدير شبكة المؤسسة</button></div>
+ </div>
  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
   <div class="bg-white p-5 rounded-2xl border border-slate-200"><p class="text-xs font-bold text-slate-500">إجمالي التلاميذ المسجلين</p><h3 id="d-reg" class="text-2xl font-extrabold mt-1">0</h3></div>
   <div class="bg-white p-5 rounded-2xl border border-slate-200"><p class="text-xs font-bold text-slate-500">إجمالي غير الملتحقين</p><h3 id="d-abs" class="text-2xl font-extrabold text-red-600 mt-1">0</h3></div>
@@ -72,7 +77,7 @@ body{font-family:'Cairo',sans-serif;background:#f1f5f9}
   <div class="bg-white p-5 rounded-2xl border border-slate-200"><p class="text-xs font-bold text-slate-500">المؤسسات المزارة</p><h3 id="d-cnt" class="text-2xl font-extrabold text-indigo-600 mt-1">0</h3></div>
  </div>
  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  <div class="bg-white p-5 rounded-2xl border border-slate-200"><h3 class="font-bold text-sm mb-3">توزيع التسجيل والالتحاق حسب المديريات</h3><div class="h-64"><canvas id="ch1"></canvas></div></div>
+  <div class="bg-white p-5 rounded-2xl border border-slate-200"><h3 id="ch1t" class="font-bold text-sm mb-3">توزيع التسجيل والالتحاق حسب المديريات</h3><div class="h-64"><canvas id="ch1"></canvas></div></div>
   <div class="bg-white p-5 rounded-2xl border border-slate-200"><h3 class="font-bold text-sm mb-3">مؤشرات تمرير الروائز</h3><div class="h-64"><canvas id="ch2"></canvas></div></div>
  </div>
  <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
@@ -88,6 +93,7 @@ const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],FL=
 let cur='primaire',dirC,pieC;
 const st={dir:'مديرية مراكش',reports:(()=>{try{return JSON.parse(localStorage.getItem('aref_school_reports_data'))||[]}catch(e){return[]}})()};
 const YN=['نعم','لا'],AV=['متوفر','غير متوفر'];
+$('#fd').innerHTML='<option value="">جميع المديريات</option>'+$$('#dirsel option').map(o=>`<option>${o.value||o.text}</option>`).join('');
 const opt=o=>'<option value="">—</option>'+o.map(v=>`<option>${v}</option>`).join('');
 const I=(k,l,t='number',x='')=>(FL[k]=l,`<div><label class="lb">${l}</label><input data-k="${k}" type="${t}" ${t=='number'?'min="0"':''} ${x} class="ip"></div>`);
 const S=(k,l,o)=>(FL[k]=l,`<div><label class="lb">${l}</label><select data-k="${k}" class="ip">${opt(o)}</select></div>`);
@@ -129,7 +135,7 @@ const sStu=c=>{const rows=[['t','مجموع التلميذات والتلامي�
  return SEC('إحصائيات التلاميذ والتسجيل وإرجاع المنقطعين','fa-users-rectangle',
  TB(['الفئة','عدد المسجلين فعليا','الوافدون من خارج المديرية','الوافدون من داخل المديرية','المفصولون والمنقطعون الذين تم إرجاعهم','المغادرون (شهادة المغادرة)','غير الملتحقين','نسبة عدم الالتحاق (%)','الأعداد المتوقعة في التعديل'],
  rows.map(([r,l])=>`<td>${l}</td>`+N(`s_${r}_reg`,l,'المسجلون فعليا')+N(`s_${r}_out`,l,'الوافدون من خارج المديرية')+N(`s_${r}_in`,l,'الوافدون من داخل المديرية')+N(`s_${r}_ret`,l,'المرجعون')+N(`s_${r}_lv`,l,'المغادرون')+N(`s_${r}_abs`,l,'غير الملتحقين')+R(`s_${r}_rate`,l,'نسبة عدم الالتحاق')+N(`s_${r}_exp`,l,'الأعداد المتوقعة في التعديل')))+
- H('عملية إرجاع المنقطعين والمفصولين:')+G(3,I('rq_n','عدد الطلبات')+I('rq_d','تاريخ انعقاد مجلس القسم للبت في هذه الطلبات','date')+I('rq_ok','عدد الطلبات الملباة'))+T('rq_note','ملاحظات')+G(2,S('abs_daily','هل يتم مسك الغياب اليومي؟',YN)))};
+ H('عملية إرجاع المنقطعين والمفصولين:')+G(3,I('rq_n','عدد الطلبات')+I('rq_d','تاريخ انعقاد مجلس القسم للبت في هذه الطلبات','date')+I('rq_ok','عدد الطلبات الملباة'))+T('rq_note','ملاحظات')+G(2,S('abs_daily','هل يتم مسك الغياب اليومي؟',YN)+I('abs_why','سبب عدم مسك الغياب (في حالة الجواب بلا)','text')))};
 
 const sCls=c=>{const cs=[['a','أقسام أكثر من 50 تلميذا'],['b','أقسام ما بين 45 و50 تلميذا'],['c','أقسام ما بين 41 و44 تلميذا'],['d','أقسام أقل من 41 تلميذا']];
  const L=c.lv.length>1?[...c.lv,'T']:c.lv;
@@ -201,16 +207,17 @@ function recalc(){const c=CY[cur];
 $('#fc').addEventListener('input',e=>{if(e.target.dataset.auto)e.target.dataset.d=1;recalc()});
 
 /* ---------- views / data ---------- */
-function sv(w){const f=w=='form';$('#form-view').classList.toggle('hidden',!f);$('#dash-view').classList.toggle('hidden',f);if(!f)dash()}
+function sv(w){const f=w=='form';$('#form-view').classList.toggle('hidden',!f);$('#dash-view').classList.toggle('hidden',f);$('#selbar').classList.toggle('hidden',!f);if(!f)dash()}
 const persist=()=>localStorage.setItem('aref_school_reports_data',JSON.stringify(st.reports));
 function save(e){e.preventDefault();const s=snap(),d=s.d,lab={};Object.keys(d).forEach(k=>lab[k]=FL[k]||k);
  st.reports.push({id:Date.now(),directorate:st.dir,level:CY[cur].n,schoolName:d.school||'',commune:d.commune||'',visitDate:d.vdate||'',actualRegistered:+d.s_t_reg||0,nonJoined:+d.s_t_abs||0,nonJoinedRate:d.s_t_rate||'0%',q_tests:d.b_tests||'',q_project:d.b_project||'',committeeMembers:s.cm.filter(Boolean).join(' - '),notes:d.notes||'',d,lab,problems:s.pb.filter(p=>p.some(Boolean))});
  persist();alert('تم حفظ تقرير شبكة الدخول المدرسي بنجاح!');render(false);sv('dash')}
-function dash(){const R=st.reports;let a=0,b=0,ty=0,tn=0;
+function dash(){const fv=$('#fd').value,R=st.reports.filter(r=>!fv||r.directorate==fv),sel=$('#fs').value;let a=0,b=0,ty=0,tn=0;
+ $('#fs').innerHTML='<option value="">— اختر المؤسسة —</option>'+R.map(r=>`<option value="${r.id}">${r.schoolName||'بدون اسم'} (${r.level}${r.visitDate?' - '+r.visitDate:''})</option>`).join('');$('#fs').value=R.some(r=>String(r.id)==sel)?sel:'';
  R.forEach(r=>{a+=r.actualRegistered||0;b+=r.nonJoined||0;if(r.q_tests=='نعم')ty++;else if(r.q_tests=='لا')tn++});
  $('#d-reg').innerText=a.toLocaleString();$('#d-abs').innerText=b.toLocaleString();$('#d-cnt').innerText=R.length;$('#d-rate').innerText=(a+b?(b/(a+b)*100).toFixed(1):0)+'%';
- $('#rows').innerHTML=R.map(r=>`<tr class="border-b hover:bg-slate-50"><td class="p-3 font-bold">${r.directorate}</td><td class="p-3">${r.schoolName}</td><td class="p-3">${r.level}</td><td class="p-3 text-xs">${r.visitDate||'-'}</td><td class="p-3 font-bold text-emerald-700">${(r.actualRegistered||0).toLocaleString()}</td><td class="p-3 font-bold text-red-600">${(r.nonJoined||0).toLocaleString()}</td><td class="p-3 font-bold text-amber-700">${r.nonJoinedRate||'-'}</td><td class="p-3"><button onclick="del(${r.id})" class="text-red-600 text-xs font-bold"><i class="fa-solid fa-trash"></i> حذف</button></td></tr>`).join('');
- const m={};R.forEach(r=>m[r.directorate]=(m[r.directorate]||0)+(r.actualRegistered||0));
+ $('#rows').innerHTML=R.map(r=>`<tr class="border-b hover:bg-slate-50"><td class="p-3 font-bold">${r.directorate}</td><td class="p-3">${r.schoolName}</td><td class="p-3">${r.level}</td><td class="p-3 text-xs">${r.visitDate||'-'}</td><td class="p-3 font-bold text-emerald-700">${(r.actualRegistered||0).toLocaleString()}</td><td class="p-3 font-bold text-red-600">${(r.nonJoined||0).toLocaleString()}</td><td class="p-3 font-bold text-amber-700">${r.nonJoinedRate||'-'}</td><td class="p-3 whitespace-nowrap"><button onclick="exportOne(${r.id})" class="text-teal-700 text-xs font-bold ml-3"><i class="fa-solid fa-file-excel"></i> تصدير</button><button onclick="del(${r.id})" class="text-red-600 text-xs font-bold"><i class="fa-solid fa-trash"></i> حذف</button></td></tr>`).join('');
+ const m={},gk=fv?'schoolName':'directorate';R.forEach(r=>{const k=r[gk]||'—';m[k]=(m[k]||0)+(r.actualRegistered||0)});$('#ch1t').innerText=fv?'توزيع التسجيل حسب المؤسسات - '+fv:'توزيع التسجيل والالتحاق حسب المديريات';
  dirC&&dirC.destroy();pieC&&pieC.destroy();
  dirC=new Chart($('#ch1'),{type:'bar',data:{labels:Object.keys(m).length?Object.keys(m):['لا توجد معطيات'],datasets:[{label:'المسجلون فعليا',data:Object.keys(m).length?Object.values(m):[0],backgroundColor:'#059669',borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
  pieC=new Chart($('#ch2'),{type:'doughnut',data:{labels:['تمرير الروائز (نعم)','لم يتم التمرير (لا)'],datasets:[{data:[ty,tn],backgroundColor:['#0d9488','#f43f5e']}]},options:{responsive:true,maintainAspectRatio:false}})}
@@ -221,6 +228,13 @@ function exportX(){if(!st.reports.length)return alert('لا توجد تقاري�
  const b=st.reports.map(r=>{const o={'المديرية':r.directorate,'السلك':r.level};Object.entries(r.d||{}).forEach(([k,x])=>o[(r.lab||{})[k]||k]=x);(r.problems||[]).forEach((p,i)=>o['مشكل '+(i+1)]=p.join(' | '));return o});
  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(a),'شبكة_الدخول_المدرسي');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(b),'المعطيات الكاملة');
  XLSX.writeFile(wb,'شبكة_تتبع_الدخول_المدرسي_الأكاديمية.xlsx')}
+function exportOne(id){const r=st.reports.find(x=>String(x.id)==String(id));if(!r)return alert('اختر المؤسسة أولا.');
+ const rows=[['شبكة تتبع الدخول المدرسي'],['المديرية',r.directorate],['السلك',r.level],['المؤسسة',r.schoolName],['الجماعة',r.commune],['تاريخ الزيارة',r.visitDate],['أعضاء اللجنة',r.committeeMembers],[],['البند','القيمة']];
+ Object.entries(r.d||{}).forEach(([k,x])=>{if(!['school','commune','vdate'].includes(k))rows.push([(r.lab||{})[k]||k,x])});
+ (r.problems||[]).forEach((p,i)=>rows.push(['مشكل '+(i+1),p.join(' | ')]));
+ const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:70},{wch:50}];ws['!views']=[{RTL:true}];
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'شبكة المؤسسة');
+ XLSX.writeFile(wb,('شبكة_'+(r.schoolName||'مؤسسة')).replace(/[\\/:*?"<>|]/g,'_')+'.xlsx')}
 function importX(ev){const f=ev.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=e=>{const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'}),j=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
  j.forEach((r,i)=>st.reports.push({id:Date.now()+i,directorate:r['المديرية']||'مديرية مراكش',level:r['السلك']||'الابتدائي',schoolName:r['اسم المؤسسة']||'',commune:r['الجماعة']||'',visitDate:r['تاريخ الزيارة']||'',actualRegistered:Number(r['المسجلون فعليا']||r['المسجلون فعليا']||0),nonJoined:Number(r['غير الملتحقين']||0),nonJoinedRate:r['نسبة عدم الالتحاق']||'0%',q_tests:r['تمرير الروائز']||'',q_project:r['مشروع المؤسسة']||'',committeeMembers:r['أعضاء اللجنة']||'',notes:r['الملاحظات']||''}));
  if(j.length){persist();alert('تم استيراد شبكة المعطيات بنجاح!');sv('dash')}};rd.readAsArrayBuffer(f)}
