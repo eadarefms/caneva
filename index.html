@@ -6,20 +6,22 @@
     <title>منظومة تتبع الدخول المدرسي - الأكاديمية الجهوية مراكش آسفي</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS for Excel -->
+    <!-- SheetJS for Excel Import/Export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- FontAwesome -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
+    <!-- Google Fonts Arabic -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
         .tab-btn.active { background-color: #047857; color: white; border-color: #047857; }
+        .form-section-title { border-right: 4px solid #059669; padding-right: 0.75rem; color: #065f46; font-weight: 800; }
+        .custom-table th, .custom-table td { text-align: right; padding: 0.75rem; border-bottom: 1px solid #e2e8f0; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- Header -->
+    <!-- Header Section -->
     <header class="bg-gradient-to-r from-emerald-900 via-teal-800 to-indigo-900 text-white shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -33,7 +35,7 @@
                     </div>
                 </div>
                 
-                <!-- Action Buttons -->
+                <!-- Navbar Actions -->
                 <div class="flex flex-wrap items-center gap-2">
                     <button onclick="switchSection('dashboard')" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm transition flex items-center gap-2 border border-white/20">
                         <i class="fa-solid fa-chart-pie"></i> لوحة القيادة
@@ -56,10 +58,10 @@
         </div>
     </header>
 
-    <!-- Main Content -->
+    <!-- Main Body Container -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
 
-        <!-- Dashboard Section -->
+        <!-- DASHBOARD VIEW -->
         <div id="dashboardSection" class="space-y-6">
             <!-- Filter Bar -->
             <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
@@ -74,11 +76,11 @@
                 </div>
             </div>
 
-            <!-- Stats Overview -->
+            <!-- Dashboard Stat Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-semibold text-slate-500">المسجلون فعلياً</p>
+                        <p class="text-xs font-semibold text-slate-500">مجموع المسجلين فعلياً</p>
                         <h3 id="statActual" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
                     </div>
                     <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
@@ -87,7 +89,7 @@
                 </div>
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-semibold text-slate-500">عدد غير الملتحقين</p>
+                        <p class="text-xs font-semibold text-slate-500">غير الملتحقين</p>
                         <h3 id="statAbsent" class="text-2xl font-bold text-red-600 mt-1">0</h3>
                     </div>
                     <div class="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center text-xl">
@@ -97,7 +99,7 @@
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
                     <div>
                         <p class="text-xs font-semibold text-slate-500">نسبة الانطلاق الفعلي للدراسة</p>
-                        <h3 id="statStartedRate" class="text-2xl font-bold text-emerald-600 mt-1">0%</h3>
+                        <h3 id="statStartRate" class="text-2xl font-bold text-emerald-600 mt-1">0%</h3>
                     </div>
                     <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
                         <i class="fa-solid fa-calendar-check"></i>
@@ -114,23 +116,23 @@
                 </div>
             </div>
 
-            <!-- Table -->
+            <!-- Data Table Overview -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="p-4 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-bold text-slate-800">سجل التقارير والزيارات الميدانية</h2>
+                    <h2 class="font-bold text-slate-800">تقارير شبكة تتبع الدخول المدرسي المسجلة</h2>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-right text-sm">
+                    <table class="w-full text-right text-sm custom-table">
                         <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
                             <tr>
-                                <th class="p-3">المديرية</th>
-                                <th class="p-3">المؤسسة</th>
-                                <th class="p-3">السلك</th>
-                                <th class="p-3">استقبال التلاميذ</th>
-                                <th class="p-3">انطلاق الدراسة</th>
-                                <th class="p-3">تمرير الروائز</th>
-                                <th class="p-3">جمعية النجاح</th>
-                                <th class="p-3 text-center">إجراءات</th>
+                                <th>المديرية</th>
+                                <th>المؤسسة</th>
+                                <th>السلك</th>
+                                <th>تاريخ الزيارة</th>
+                                <th>المسجلون فعلياً</th>
+                                <th>غير الملتحقين</th>
+                                <th>انطلاق الدراسة</th>
+                                <th class="text-center">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="reportsTableBody" class="divide-y divide-slate-100">
@@ -140,24 +142,26 @@
             </div>
         </div>
 
-        <!-- Form Section -->
+        <!-- DETAILED FIELD FORM VIEW -->
         <div id="formSection" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-8">
                 <div class="border-b border-slate-200 pb-4">
                     <h2 class="text-xl font-bold text-emerald-900 flex items-center gap-2">
-                        <i class="fa-solid fa-pen-to-square text-emerald-600"></i>
-                        استمارة شبكة تتبع الدخول المدرسي والأسئلة التقييمية
+                        <i class="fa-solid fa-clipboard-check text-emerald-600"></i>
+                        استمارة شبكة تتبع الدخول المدرسي الميدانية التفصيلية
                     </h2>
+                    <p class="text-xs text-slate-500 mt-1">مطابقة لشبكة التتبع الرسمية للأكاديمية بجميع الأقسام والجداول والأسئلة الفرعية.</p>
                 </div>
 
                 <form id="fullGridForm" onsubmit="saveReport(event)" class="space-y-8">
+
                     <!-- 1. معطيات عامة -->
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
-                        <h3 class="font-bold text-emerald-800 text-sm border-b pb-2"><i class="fa-solid fa-circle-info"></i> 1. معطيات عامة</h3>
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+                        <h3 class="form-section-title text-base"><i class="fa-solid fa-circle-info"></i> 1. معطيات عامة حول المؤسسة والزيارة</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                             <div>
-                                <label class="block text-xs font-bold mb-1">المديرية الإقليمية</label>
-                                <select id="fieldDirectorate" class="w-full p-2 border rounded-lg text-sm" required>
+                                <label class="block text-xs font-bold mb-1">المديرية / النيابة</label>
+                                <select id="f_directorate" class="w-full p-2 border rounded-lg text-sm" required>
                                     <option value="مراكش">مراكش</option>
                                     <option value="آسفي">آسفي</option>
                                     <option value="الحوز">الحوز</option>
@@ -170,7 +174,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold mb-1">السلك التعليمي</label>
-                                <select id="fieldLevel" class="w-full p-2 border rounded-lg text-sm" required>
+                                <select id="f_level" class="w-full p-2 border rounded-lg text-sm" required>
                                     <option value="الابتدائي">الابتدائي</option>
                                     <option value="الإعدادي">الإعدادي</option>
                                     <option value="التأهيلي">التأهيلي</option>
@@ -178,181 +182,231 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold mb-1">الجماعة</label>
-                                <input type="text" id="fieldCommune" class="w-full p-2 border rounded-lg text-sm" required>
+                                <input type="text" id="f_commune" class="w-full p-2 border rounded-lg text-sm" required>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold mb-1">إسم المؤسسة</label>
-                                <input type="text" id="fieldSchool" class="w-full p-2 border rounded-lg text-sm" required>
+                                <input type="text" id="f_school" class="w-full p-2 border rounded-lg text-sm" required>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold mb-1">اسم المدير ورقم التأجير</label>
-                                <input type="text" id="fieldManager" class="w-full p-2 border rounded-lg text-sm">
+                                <input type="text" id="f_manager" class="w-full p-2 border rounded-lg text-sm">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold mb-1">تاريخ الزيارة</label>
-                                <input type="date" id="fieldVisitDate" class="w-full p-2 border rounded-lg text-sm" required>
+                                <input type="date" id="f_visitDate" class="w-full p-2 border rounded-lg text-sm" required>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 2. أعداد التلاميذ والالتحاق -->
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
-                        <h3 class="font-bold text-emerald-800 text-sm border-b pb-2"><i class="fa-solid fa-users"></i> 2. أعداد التلاميذ والتوافق والالتحاق</h3>
+                    <!-- 2. أعداد التلاميذ والتوافق والالتحاق -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+                        <h3 class="form-section-title text-base"><i class="fa-solid fa-users"></i> 2. معطيات أعداد التلاميذ والالتحاق</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold mb-1">الأعداد المتوقعة في التعديل</label>
+                                <input type="number" id="f_expected" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">الوافدون من داخل/خارج النيابة</label>
+                                <input type="number" id="f_transfers" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">المنقطعون الذين تم إرجاعهم</label>
+                                <input type="number" id="f_returned" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">عدد المسجلين فعلياً</label>
+                                <input type="number" id="f_actual" min="0" value="0" class="w-full p-2 border rounded-lg text-sm" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">المغادرون (شهادة المغادرة)</label>
+                                <input type="number" id="f_left" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">عدد غير الملتحقين</label>
+                                <input type="number" id="f_absent" min="0" value="0" class="w-full p-2 border rounded-lg text-sm" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">الجدد منهم (بالسنة الأولى / الجذوع)</label>
+                                <input type="number" id="f_newStudents" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. إرجاع المنقطعين والمفصولين -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+                        <h3 class="form-section-title text-base"><i class="fa-solid fa-user-plus"></i> 3. عملية إرجاع المنقطعين والمفصولين</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label class="block text-xs font-bold mb-1">المسجلون فعلياً</label>
-                                <input type="number" id="fieldActual" min="0" value="0" class="w-full p-2 border rounded-lg text-sm" required>
+                                <label class="block text-xs font-bold mb-1">عدد الطلبات المقدمة</label>
+                                <input type="number" id="f_requestsCount" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold mb-1">غير الملتحقين</label>
-                                <input type="number" id="fieldAbsent" min="0" value="0" class="w-full p-2 border rounded-lg text-sm" required>
+                                <label class="block text-xs font-bold mb-1">تاريخ انعقاد مجلس القسم للبت</label>
+                                <input type="date" id="f_councilDate" class="w-full p-2 border rounded-lg text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold mb-1">المغادرون (بشهادة مغادرة)</label>
-                                <input type="number" id="fieldLeft" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
+                                <label class="block text-xs font-bold mb-1">عدد الطلبات الملبية</label>
+                                <input type="number" id="f_requestsAccepted" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
                             </div>
                         </div>
                     </div>
 
-                    <!-- 3. الأسئلة المحورية والتقييمية المضافة -->
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
-                        <h3 class="font-bold text-emerald-800 text-sm border-b pb-2"><i class="fa-solid fa-list-check"></i> 3. الأسئلة والتدابير الميدانية المحورية (نعم / لا)</h3>
+                    <!-- 4. بنيات الأقسام والاكتظاظ والتعليم المشترك -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+                        <h3 class="form-section-title text-base"><i class="fa-solid fa-chalkboard"></i> 4. بنيات الأقسام والاكتظاظ والأقسام المشتركة</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold mb-1">أقسام أقل من 30 تلميذاً</label>
+                                <input type="number" id="f_classUnder30" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">أقسام ما بين 31 و 44 تلميذاً</label>
+                                <input type="number" id="f_class31to44" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">أقسام ما بين 45 و 50 تلميذاً</label>
+                                <input type="number" id="f_class45to50" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">أقسام أكثر من 50 تلميذاً (اكتظاظ)</label>
+                                <input type="number" id="f_classOver50" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. الموارد البشرية (هيئة التدريس والإدارة) -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+                        <h3 class="form-section-title text-base"><i class="fa-solid fa-chalkboard-user"></i> 5. الموارد البشرية (هيئة التدريس والإدارة)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold mb-1">المتوفر بعد الحركة</label>
+                                <input type="number" id="f_teachersAvail" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">المعينون الجدد / المكلفون</label>
+                                <input type="number" id="f_teachersNew" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">العدد اللازم</label>
+                                <input type="number" id="f_teachersNeeded" min="0" value="0" class="w-full p-2 border rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">الخصاص / الفائض الحاصل</label>
+                                <input type="number" id="f_teachersDiff" value="0" class="w-full p-2 border rounded-lg text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6. الأسئلة والتدابير المحورية -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-6">
+                        <h3 class="form-section-title text-base"><i class="fa-solid fa-list-check"></i> 6. الأسئلة والتدابير المحورية (نعم / لا)</h3>
+                        
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                            <!-- جمعية دعم مدرسة النجاح -->
-                            <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">جمعية دعم مدرسة النجاح:</span>
+                            <!-- 1. جمعية مدرسة النجاح -->
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">1. جمعية دعم مدرسة النجاح وتأسيسها والاستفادة من منحة القرب:</span>
                                 <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_najah" value="نعم" checked> نعم
-                                    </label>
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_najah" value="لا"> لا
-                                    </label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_najah" value="نعم" checked> نعم</label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_najah" value="لا"> لا</label>
                                 </div>
-                                <input type="text" id="q_najah_why" placeholder="في حالة الإجابة بلا، لماذا؟" class="w-full p-1.5 border rounded text-xs">
+                                <input type="text" id="q_najah_why" placeholder="في حالة الإجابة بلا، أذكر الأسباب..." class="w-full p-2 border rounded text-xs">
                             </div>
 
-                            <!-- جمعية آباء وأمهات وأولياء التلاميذ -->
-                            <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">جمعيات آباء وأمهات وأولياء التلاميذ:</span>
+                            <!-- 2. جمعيات الآباء -->
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">2. جمعية آباء وأمهات وأولياء التلاميذ وتجديد مكتبها:</span>
                                 <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_parents" value="نعم" checked> نعم
-                                    </label>
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_parents" value="لا"> لا
-                                    </label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_parents" value="نعم" checked> نعم</label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_parents" value="لا"> لا</label>
                                 </div>
-                                <input type="text" id="q_parents_why" placeholder="تجديد المكاتب أو سبب عدم التفعيل..." class="w-full p-1.5 border rounded text-xs">
+                                <input type="text" id="q_parents_why" placeholder="ملاحظات حول تجديد المكتب والتفعيل..." class="w-full p-2 border rounded text-xs">
                             </div>
 
-                            <!-- مشروع المؤسسة -->
-                            <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">مشروع المؤسسة وتفعيل الفريق المحلي:</span>
+                            <!-- 3. مشروع المؤسسة -->
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">3. إعداد وصياغة وتفعيل مشروع المؤسسة:</span>
                                 <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_project" value="نعم" checked> نعم
-                                    </label>
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_project" value="لا"> لا
-                                    </label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_project" value="نعم" checked> نعم</label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_project" value="لا"> لا</label>
                                 </div>
-                                <input type="text" id="q_project_why" placeholder="في حالة الإجابة بلا، لماذا؟" class="w-full p-1.5 border rounded text-xs">
+                                <input type="text" id="q_project_why" placeholder="في حالة الإجابة بلا، لماذا؟" class="w-full p-2 border rounded text-xs">
                             </div>
 
-                            <!-- عدة عمل الأساتذة والرقمنة -->
-                            <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">توفر عدة عمل الأساتذة (حاسوب / Office / المسلاط):</span>
+                            <!-- 4. عدة الأساتذة -->
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">4. توفر عدة عمل الأساتذة (حاسوب / Office / المسلاط الضوئي):</span>
                                 <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_tools" value="نعم" checked> نعم
-                                    </label>
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_tools" value="لا"> لا
-                                    </label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_tools" value="نعم" checked> نعم</label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_tools" value="لا"> لا</label>
                                 </div>
-                                <input type="text" id="q_tools_why" placeholder="في حالة الخصاص أذكر النقص..." class="w-full p-1.5 border rounded text-xs">
+                                <input type="text" id="q_tools_why" placeholder="حدد النقص إن وجد..." class="w-full p-2 border rounded text-xs">
                             </div>
 
-                            <!-- استقبال التلاميذ -->
-                            <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">استقبال التلاميذ وزيارة المرافق وإطلاعهم على النظام الداخلي:</span>
+                            <!-- 5. استقبال التلاميذ -->
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">5. استقبال التلاميذ وإطلاعهم على النظام الداخلي:</span>
                                 <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_reception" value="نعم" checked> نعم
-                                    </label>
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_reception" value="لا"> لا
-                                    </label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_reception" value="نعم" checked> نعم</label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_reception" value="لا"> لا</label>
                                 </div>
-                                <input type="text" id="q_reception_why" placeholder="ملاحظات حول طريقة الاستقبال..." class="w-full p-1.5 border rounded text-xs">
+                                <input type="text" id="q_reception_why" placeholder="ملاحظات الاستقبال..." class="w-full p-2 border rounded text-xs">
                             </div>
 
-                            <!-- العلم الوطني -->
-                            <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">العلم الوطني وتحيته بالطريقة اللائقة:</span>
+                            <!-- 6. العلم الوطني -->
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">6. توفر العلم الوطني وتحيته وترديد النشيد الوطني:</span>
                                 <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_flag" value="نعم" checked> نعم
-                                    </label>
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_flag" value="لا"> لا
-                                    </label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_flag" value="نعم" checked> نعم</label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_flag" value="لا"> لا</label>
                                 </div>
-                                <input type="text" id="q_flag_why" placeholder="حالة العلم والنشيد..." class="w-full p-1.5 border rounded text-xs">
+                                <input type="text" id="q_flag_why" placeholder="حالة العلم والنشيد..." class="w-full p-2 border rounded text-xs">
                             </div>
 
-                            <!-- انطلاق الدراسة فعلياً -->
-                            <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">انطلاق الدراسة فعلياً في موعدها:</span>
+                            <!-- 7. انطلاق الدراسة فعلياً -->
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">7. انطلاق الدراسة فعلياً في موعدها المحدد:</span>
                                 <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_start" value="نعم" checked> نعم
-                                    </label>
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_start" value="لا"> لا
-                                    </label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_start" value="نعم" checked> نعم</label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_start" value="لا"> لا</label>
                                 </div>
-                                <input type="text" id="q_start_why" placeholder="في حالة الإجابة بلا، أذكر الأسباب..." class="w-full p-1.5 border rounded text-xs">
+                                <input type="text" id="q_start_why" placeholder="تاريخ الانطلاق والأسباب في حالة التأخر..." class="w-full p-2 border rounded text-xs">
                             </div>
 
-                            <!-- تمرير الروائز والتقويم التشخيصي -->
-                            <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
-                                <span class="font-bold text-xs text-slate-800 block">تمرير وتحليل واستثمار الروائز ووضع خطة الدعم:</span>
+                            <!-- 8. تمرير الروائز -->
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+                                <span class="font-bold text-xs text-slate-800 block">8. تمرير وتحليل واستثمار الروائز ووضع خطة الدعم:</span>
                                 <div class="flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_tests" value="نعم" checked> نعم
-                                    </label>
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="q_tests" value="لا"> لا
-                                    </label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_tests" value="نعم" checked> نعم</label>
+                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="q_tests" value="لا"> لا</label>
                                 </div>
-                                <input type="text" id="q_tests_why" placeholder="حالة توفر العدة وتمريرها..." class="w-full p-1.5 border rounded text-xs">
+                                <input type="text" id="q_tests_why" placeholder="توفر العدة وإنجاز الدعم..." class="w-full p-2 border rounded text-xs">
                             </div>
 
                         </div>
                     </div>
 
-                    <!-- 4. أعضاء اللجنة والملاحظات -->
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
-                        <h3 class="font-bold text-emerald-800 text-sm border-b pb-2"><i class="fa-solid fa-user-pen"></i> 4. أعضاء اللجنة والملاحظات العامة</h3>
+                    <!-- 7. أعضاء اللجنة والملاحظات والحلول -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+                        <h3 class="form-section-title text-base"><i class="fa-solid fa-user-pen"></i> 7. أعضاء اللجنة الميدانية والملاحظات</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold mb-1">أسماء وأعضاء اللجنة الميدانية</label>
-                                <input type="text" id="fieldCommittee" placeholder="الاسم والنسب..." class="w-full p-2 border rounded-lg text-sm" required>
+                                <label class="block text-xs font-bold mb-1">أعضاء اللجنة الميدانية (الاسم والنسب)</label>
+                                <input type="text" id="f_committee" placeholder="أسماء أعضاء اللجنة..." class="w-full p-2 border rounded-lg text-sm" required>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold mb-1">المشاكل المطروحة والحلول المقترحة</label>
-                                <textarea id="fieldNotes" rows="2" placeholder="اكتب الملاحظات العامة للزيارة..." class="w-full p-2 border rounded-lg text-sm"></textarea>
+                                <textarea id="f_notes" rows="3" placeholder="المشاكل والقرارات والتوصيات..." class="w-full p-2 border rounded-lg text-sm"></textarea>
                             </div>
                         </div>
                     </div>
 
                     <!-- Submit Buttons -->
                     <div class="flex items-center justify-end gap-3 pt-4">
-                        <button type="button" onclick="switchSection('dashboard')" class="px-5 py-2 rounded-xl text-slate-600 bg-slate-200 font-bold text-sm">إلغاء</button>
-                        <button type="submit" class="px-6 py-2 rounded-xl text-white bg-emerald-600 font-bold text-sm shadow">حفظ التقرير والأسئلة</button>
+                        <button type="button" onclick="switchSection('dashboard')" class="px-5 py-2.5 rounded-xl text-slate-600 bg-slate-200 font-bold text-sm">إلغاء</button>
+                        <button type="submit" class="px-7 py-2.5 rounded-xl text-white bg-emerald-600 hover:bg-emerald-700 font-bold text-sm shadow-lg">حفظ التقرير والشبكة بالكامل</button>
                     </div>
                 </form>
             </div>
@@ -360,13 +414,13 @@
 
     </main>
 
-    <!-- JavaScript Engine -->
+    <!-- JavaScript Logic Engine -->
     <script>
-        let reports = JSON.parse(localStorage.getItem('fullNetworkReports')) || [];
+        let reports = JSON.parse(localStorage.getItem('masterFullNetworkData')) || [];
         let activeFilter = 'الكل';
 
         function saveToStorage() {
-            localStorage.setItem('fullNetworkReports', JSON.stringify(reports));
+            localStorage.setItem('masterFullNetworkData', JSON.stringify(reports));
         }
 
         function switchSection(sec) {
@@ -395,16 +449,20 @@
 
         function saveReport(e) {
             e.preventDefault();
+
+            const actual = Number(document.getElementById('f_actual').value) || 0;
+            const absent = Number(document.getElementById('f_absent').value) || 0;
+
             const report = {
                 id: Date.now(),
-                directorate: document.getElementById('fieldDirectorate').value,
-                level: document.getElementById('fieldLevel').value,
-                commune: document.getElementById('fieldCommune').value,
-                school: document.getElementById('fieldSchool').value,
-                manager: document.getElementById('fieldManager').value,
-                visitDate: document.getElementById('fieldVisitDate').value,
-                actual: Number(document.getElementById('fieldActual').value),
-                absent: Number(document.getElementById('fieldAbsent').value),
+                directorate: document.getElementById('f_directorate').value,
+                level: document.getElementById('f_level').value,
+                commune: document.getElementById('f_commune').value,
+                school: document.getElementById('f_school').value,
+                manager: document.getElementById('f_manager').value,
+                visitDate: document.getElementById('f_visitDate').value,
+                actual: actual,
+                absent: absent,
                 q_najah: getRadioValue('q_najah'),
                 q_parents: getRadioValue('q_parents'),
                 q_project: getRadioValue('q_project'),
@@ -413,14 +471,14 @@
                 q_flag: getRadioValue('q_flag'),
                 q_start: getRadioValue('q_start'),
                 q_tests: getRadioValue('q_tests'),
-                committee: document.getElementById('fieldCommittee').value,
-                notes: document.getElementById('fieldNotes').value
+                committee: document.getElementById('f_committee').value,
+                notes: document.getElementById('f_notes').value
             };
 
             reports.push(report);
             saveToStorage();
             document.getElementById('fullGridForm').reset();
-            alert('تم حفظ تقرير الشبكة والأسئلة بنجاح!');
+            alert('تم حفظ الشبكة والتقرير بالكامل بنجاح!');
             switchSection('dashboard');
         }
 
@@ -450,10 +508,10 @@
                         <td class="p-3 font-bold text-slate-800">${r.directorate}</td>
                         <td class="p-3">${r.school}</td>
                         <td class="p-3"><span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded font-semibold">${r.level}</span></td>
-                        <td class="p-3"><span class="${r.q_reception==='نعم'?'text-emerald-600':'text-red-500'} font-bold">${r.q_reception}</span></td>
+                        <td class="p-3">${r.visitDate || '-'}</td>
+                        <td class="p-3 font-bold text-emerald-700">${r.actual.toLocaleString()}</td>
+                        <td class="p-3 font-bold text-red-600">${r.absent.toLocaleString()}</td>
                         <td class="p-3"><span class="${r.q_start==='نعم'?'text-emerald-600':'text-red-500'} font-bold">${r.q_start}</span></td>
-                        <td class="p-3"><span class="${r.q_tests==='نعم'?'text-emerald-600':'text-red-500'} font-bold">${r.q_tests}</span></td>
-                        <td class="p-3"><span class="${r.q_najah==='نعم'?'text-emerald-600':'text-red-500'} font-bold">${r.q_najah}</span></td>
                         <td class="p-3 text-center">
                             <button onclick="deleteReport(${r.id})" class="text-red-500 hover:text-red-700 font-bold text-xs"><i class="fa-solid fa-trash"></i> حذف</button>
                         </td>
@@ -463,8 +521,8 @@
 
             document.getElementById('statActual').innerText = totActual.toLocaleString();
             document.getElementById('statAbsent').innerText = totAbsent.toLocaleString();
-            const rate = filtered.length > 0 ? ((startedCount / filtered.length) * 100).toFixed(1) : 0;
-            document.getElementById('statStartedRate').innerText = `${rate}%`;
+            const startRate = filtered.length > 0 ? ((startedCount / filtered.length) * 100).toFixed(1) : 0;
+            document.getElementById('statStartRate').innerText = `${startRate}%`;
             document.getElementById('statReports').innerText = filtered.length;
         }
 
@@ -473,19 +531,22 @@
                 'المديرية': r.directorate,
                 'السلك': r.level,
                 'المؤسسة': r.school,
+                'تاريخ الزيارة': r.visitDate,
                 'المسجلون فعليا': r.actual,
                 'غير الملتحقين': r.absent,
+                'انطلاق الدراسة': r.q_start,
                 'استقبال التلاميذ': r.q_reception,
-                'انطلاق الدراسة فعليا': r.q_start,
                 'تمرير الروائز': r.q_tests,
                 'جمعية النجاح': r.q_najah,
+                'جمعية الآباء': r.q_parents,
                 'مشروع المؤسسة': r.q_project,
-                'أعضاء اللجنة': r.committee
+                'أعضاء اللجنة': r.committee,
+                'ملاحظات وقرارات': r.notes
             }));
             const ws = XLSX.utils.json_to_sheet(dataToExport);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "أسئلة شبكة الدخول");
-            XLSX.writeFile(wb, "تقرير_أسئلة_شبكة_الدخول_المدرسي.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "شبكة التتبع");
+            XLSX.writeFile(wb, "شبكة_تتبع_الدخول_المدرسي_الشاملة.xlsx");
         }
 
         function importExcel(e) {
@@ -503,19 +564,22 @@
                             directorate: row['المديرية'] || 'غير محدد',
                             level: row['السلك'] || 'الابتدائي',
                             school: row['المؤسسة'] || '',
+                            visitDate: row['تاريخ الزيارة'] || '',
                             actual: Number(row['المسجلون فعليا'] || 0),
                             absent: Number(row['غير الملتحقين'] || 0),
+                            q_start: row['انطلاق الدراسة'] || 'نعم',
                             q_reception: row['استقبال التلاميذ'] || 'نعم',
-                            q_start: row['انطلاق الدراسة فعليا'] || 'نعم',
                             q_tests: row['تمرير الروائز'] || 'نعم',
                             q_najah: row['جمعية النجاح'] || 'نعم',
+                            q_parents: row['جمعية الآباء'] || 'نعم',
                             q_project: row['مشروع المؤسسة'] || 'نعم',
-                            committee: row['أعضاء اللجنة'] || ''
+                            committee: row['أعضاء اللجنة'] || '',
+                            notes: row['ملاحظات وقرارات'] || ''
                         });
                     });
                     saveToStorage();
                     renderReports();
-                    alert('تم استيراد تقارير الأسئلة بنجاح!');
+                    alert('تم استيراد شبكة التتبع بنجاح!');
                 }
             };
             reader.readAsArrayBuffer(file);
