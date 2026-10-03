@@ -68,16 +68,16 @@ body{font-family:'Cairo',sans-serif;background:#f1f5f9}
  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
   <div class="bg-white p-5 rounded-2xl border border-slate-200"><p class="text-xs font-bold text-slate-500">إجمالي التلاميذ المسجلين</p><h3 id="d-reg" class="text-2xl font-extrabold mt-1">0</h3></div>
   <div class="bg-white p-5 rounded-2xl border border-slate-200"><p class="text-xs font-bold text-slate-500">إجمالي غير الملتحقين</p><h3 id="d-abs" class="text-2xl font-extrabold text-red-600 mt-1">0</h3></div>
-  <div class="bg-white p-5 rounded-2xl border border-slate-200"><p class="text-xs font-bold text-slate-500">نسبة الانطلاق الفعلي</p><h3 id="d-rate" class="text-2xl font-extrabold text-teal-600 mt-1">0%</h3></div>
+  <div class="bg-white p-5 rounded-2xl border border-slate-200"><p class="text-xs font-bold text-slate-500">نسبة عدم الالتحاق</p><h3 id="d-rate" class="text-2xl font-extrabold text-teal-600 mt-1">0%</h3></div>
   <div class="bg-white p-5 rounded-2xl border border-slate-200"><p class="text-xs font-bold text-slate-500">المؤسسات المزارة</p><h3 id="d-cnt" class="text-2xl font-extrabold text-indigo-600 mt-1">0</h3></div>
  </div>
  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
   <div class="bg-white p-5 rounded-2xl border border-slate-200"><h3 class="font-bold text-sm mb-3">توزيع التسجيل والالتحاق حسب المديريات</h3><div class="h-64"><canvas id="ch1"></canvas></div></div>
-  <div class="bg-white p-5 rounded-2xl border border-slate-200"><h3 class="font-bold text-sm mb-3">مؤشرات انطلاق الدراسة وتمرير الروائز</h3><div class="h-64"><canvas id="ch2"></canvas></div></div>
+  <div class="bg-white p-5 rounded-2xl border border-slate-200"><h3 class="font-bold text-sm mb-3">مؤشرات تمرير الروائز</h3><div class="h-64"><canvas id="ch2"></canvas></div></div>
  </div>
  <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
   <div class="p-4 border-b flex items-center justify-between"><h3 class="font-bold text-sm">سجل التقارير والزيارات الميدانية المحفوظة</h3><button onclick="clearAll()" class="text-xs text-red-600 font-bold">مسح جميع المعطيات</button></div>
-  <div class="overflow-x-auto"><table class="w-full text-right text-sm"><thead class="bg-slate-50 text-xs font-bold"><tr><th class="p-3">المديرية</th><th class="p-3">المؤسسة</th><th class="p-3">السلك</th><th class="p-3">التاريخ</th><th class="p-3">المسجلون</th><th class="p-3">غير الملتحقين</th><th class="p-3">انطلاق الدراسة</th><th class="p-3">إجراءات</th></tr></thead><tbody id="rows"></tbody></table></div>
+  <div class="overflow-x-auto"><table class="w-full text-right text-sm"><thead class="bg-slate-50 text-xs font-bold"><tr><th class="p-3">المديرية</th><th class="p-3">المؤسسة</th><th class="p-3">السلك</th><th class="p-3">التاريخ</th><th class="p-3">المسجلون</th><th class="p-3">غير الملتحقين</th><th class="p-3">نسبة عدم الالتحاق</th><th class="p-3">إجراءات</th></tr></thead><tbody id="rows"></tbody></table></div>
  </div>
 </div>
 </main>
@@ -113,12 +113,9 @@ const BL=y=>{const c=y=='collegial',q=y=='qualifiant';return[
 ['najah','تفعيل جمعية دعم مدرسة النجاح',['الاستفادة من المنحة'],I('b_najah_amt','مبلغ المنحة المستفاد منها (درهم)')],
 ['parents','جمعيات آباء وأمهات وأولياء التلميذات والتلاميذ',['متوفرة','تجديد المكاتب','المشاركة في المجالس وأنشطة المؤسسة','الاحتفال باليوم الوطني للجمعية']],
 ['project','مشروع المؤسسة',['تأسيس وتفعيل الفريق المحلي','إعداد وصياغة مشروع المؤسسة',...(c?['المصادقة على المشروع من طرف المؤسسة']:[]),'إنجاز وتتبع وتقويم مشروع المؤسسة']],
-['tools','توفر عدة عمل الأساتذة',['الحاسوب','تفعيل حساب Microsoft Office','المسلاط']],
-['recep','استقبال التلميذات والتلاميذ',['استقبال التلميذات والتلاميذ','زيارة مرافق المؤسسة','إطلاع المتعلمين على المعلومات المتعلقة بالمؤسسة وعلى نظامها الداخلي','مد التلاميذ باستعمال الزمن']],
+['tools','توفر عدة عمل الأساتذة',['الحاسوب','تفعيل حساب Microsoft Office','المسلاط','هل تتم صيانة المساليط']],
 ...(q?[['fete','عيد المدرسة',['وضع برنامج الاحتفال','تنظيم الاحتفال','مساهمة ومشاركة الشركاء']]]:[]),
-['flag','العلم الوطني',['متوفر',...(c||q?['برنامج تحية العلم']:[]),...(q?['الترديد الجماعي للنشيد الوطني']:[])]],
-['start','انطلاق الدراسة',['انطلاق الدراسة فعليا','توفر الأساتذة على المراجع والمقررات الدراسية','تزويد الأساتذة بمقرر تنظيم السنة الدراسية','توفر الأساتذة على جداول الحصص','الحضور الفعلي لجميع التلاميذ'],I('b_start_d','تاريخ انطلاق الدراسة فعليا','date')],
-['tests','تمرير الروائز',['توفر المؤسسة على العدة','تمرير الروائز','تحليل واستثمار الروائز',c?'وضع خطة الدعم المكثف':'وضع خطة الدعم التربوي']],
+['tests','تمرير الروائز',['توفر المؤسسة على العدة','تمرير الروائز','تحليل واستثمار الروائز',c?'وضع خطة الدعم المكثف':'وضع خطة الدعم التربوي','توصل المؤسسة بكراسات الدعم المكثف','توزيع كراسات الدعم المكثف على التلاميذ']],
 ...(q?[['leaf','مطوية الدخول المدرسي واللافتات',['توزيع مطوية دليل إجراءات الدخول المدرسي على الأساتذة','لافتات الدخول المدرسي']]]:[])
 ]};
 
@@ -132,7 +129,7 @@ const sStu=c=>{const rows=[['t','مجموع التلميذات والتلامي�
  return SEC('إحصائيات التلاميذ والتسجيل وإرجاع المنقطعين','fa-users-rectangle',
  TB(['الفئة','عدد المسجلين فعليا','الوافدون من خارج المديرية','الوافدون من داخل المديرية','المفصولون والمنقطعون الذين تم إرجاعهم','المغادرون (شهادة المغادرة)','غير الملتحقين','نسبة عدم الالتحاق (%)','الأعداد المتوقعة في التعديل'],
  rows.map(([r,l])=>`<td>${l}</td>`+N(`s_${r}_reg`,l,'المسجلون فعليا')+N(`s_${r}_out`,l,'الوافدون من خارج المديرية')+N(`s_${r}_in`,l,'الوافدون من داخل المديرية')+N(`s_${r}_ret`,l,'المرجعون')+N(`s_${r}_lv`,l,'المغادرون')+N(`s_${r}_abs`,l,'غير الملتحقين')+R(`s_${r}_rate`,l,'نسبة عدم الالتحاق')+N(`s_${r}_exp`,l,'الأعداد المتوقعة في التعديل')))+
- H('عملية إرجاع المنقطعين والمفصولين:')+G(3,I('rq_n','عدد الطلبات')+I('rq_d','تاريخ انعقاد مجلس القسم للبت في هذه الطلبات','date')+I('rq_ok','عدد الطلبات الملباة'))+T('rq_note','ملاحظات'))};
+ H('عملية إرجاع المنقطعين والمفصولين:')+G(3,I('rq_n','عدد الطلبات')+I('rq_d','تاريخ انعقاد مجلس القسم للبت في هذه الطلبات','date')+I('rq_ok','عدد الطلبات الملباة'))+T('rq_note','ملاحظات')+G(2,S('abs_daily','هل يتم مسك الغياب اليومي؟',YN)))};
 
 const sCls=c=>{const cs=[['a','أقسام أكثر من 50 تلميذا'],['b','أقسام ما بين 45 و50 تلميذا'],['c','أقسام ما بين 41 و44 تلميذا'],['d','أقسام أقل من 41 تلميذا']];
  const L=c.lv.length>1?[...c.lv,'T']:c.lv;
@@ -154,24 +151,23 @@ const sBoard=()=>SEC('الداخلية ودار الطالب والطالبة','
 
 const sSup=()=>SEC('المقررات الدراسية والنقل المدرسي','fa-bus',
  G(2,I('tb_ok','نسبة التلاميذ المتوفرين على المقررات الدراسية (%)')+I('tb_no','نسبة التلاميذ غير المتوفرين على المقررات (%)'))+
+ G(2,S('ts_lib','هل تتوفر كتب التعليم الصريح بالمكتبات المحيطة بالمؤسسة؟',YN)+S('ts_buy','هل تم اقتناؤها من طرف التلاميذ؟',YN))+
  TB(['النقل المدرسي','الخصاص','المستفيدات والمستفيدون فعليا'],['الدراجات الهوائية','الحافلات'].map((l,i)=>`<td>${l}</td>`+N(`tr_${i}_s`,l,'الخصاص')+N(`tr_${i}_b`,l,'المستفيدون فعليا')))+T('tr_why','في حالة عدم انطلاق النقل المدرسي، أذكر الأسباب')+I('partn','التعاون مع الشركاء والجماعات','text'));
 
-const sGov=c=>SEC('آليات التدبير: المجالس والجمعيات','fa-people-roof',TB(['آلية التدبير','متوفر (نعم/لا)','تاريخ التأسيس أو الاجتماع'],c.gov.map((l,i)=>`<td>${l}</td>`+SL(`g_${i}_y`,l,'متوفر',YN)+TX(`g_${i}_d`,l,'تاريخ التأسيس أو الاجتماع','date'))));
+const sGov=c=>SEC('آليات التدبير: المجالس والجمعيات','fa-people-roof',TB(['آلية التدبير','متوفر (نعم/لا)'],c.gov.map((l,i)=>`<td>${l}</td>`+SL(`g_${i}_y`,l,'متوفر',YN))));
 
 const sBlk=()=>SEC('الأسئلة والتدابير المحورية وتفعيل مجالس وهياكل المؤسسة','fa-list-check',BL(cur).map(([id,t,its,ex],i)=>{FL['b_'+id]=t;
  return`<div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3"><div class="flex flex-wrap items-center justify-between gap-2"><span class="font-bold text-sm">${i+1}. ${t}:</span><select data-k="b_${id}" class="ip" style="width:8rem">${opt(YN)}</select></div>`+
  G(2,its.map((x,j)=>{const k=`b_${id}_${j}`,s=S(k,x,YN);FL[k]=t+' - '+x;return s}).join('')+(ex||''))+
  T(`b_${id}_why`,'في حالة الإجابة بلا، لماذا؟',1).replace(/(<label[^>]*>)/,'$1')+`</div>`}).join(''));
 
-const sBld=c=>{const RH=['جاهز للدخول المدرسي','في طور الإنجاز','توقف الأشغال','عدم انطلاق الأشغال'];
+const sBld=c=>{const TH=['نعم','جزئيا','لا'];
  let h=H('أ) البناءات المدرسية المعتمدة للدخول المدرسي:')+G(2,S('bl_st','سير الإنجاز',['عدم انطلاق الأشغال','توقف الأشغال','في طور الإنجاز','انتهت به الأشغال'])+S('bl_ct','محتوى المشروع',['إحداث','توسيع','تعويض']))+T('bl_why','أسباب عدم انطلاق الأشغال أو توقفها')+
  H('ب) الخصاص من التجهيز:')+TB(['نوع التجهيز','العدد المتوفر','الخصاص'],c.eq.map((l,i)=>`<td>${l}</td>`+N(`eq_${i}_a`,l,'العدد المتوفر')+N(`eq_${i}_s`,l,'الخصاص')))+T('eq_prop','اقتراحات لتجاوز المشكل')+
- H('ج) التأهيل:')+TB(['نوع التأهيل','الحالة'],c.rh.map((l,i)=>`<td>${l}</td>`+SL(`rh_${i}`,l,'الحالة',RH)))+T('rh_why','الأسباب (عدم انطلاق الأشغال / توقفها)');
+ H('ج) تأهيل الفضاء:')+H('الفضاء الداخلي')+G(2,S('rh_in','هل تم تأهيل القاعات وتجهيزها بحامل المسلاط والمربع؟',TH))+H('الفضاء الخارجي')+G(2,S('rh_out','هل تم تأهيل الفضاء الخارجي (الباب الرئيسي والمرافق الصحية وصباغة المؤسسة)؟',TH))+T('rh_why','ملاحظات حول تأهيل الفضاء');
  if(c.board)h+=H('القسم الخارجي:')+G(3,I('ex_ag','عدد الأعوان الخواص للحراسة والتنظيف')+c.ext.map((l,i)=>S(`ex_${i}`,l,AV)).join(''));
  if(c.int&&c.int.length)h+=H('القسم الداخلي (تجهيزات الداخلية):')+G(3,c.int.map((l,i)=>S(`in_${i}`,l,AV)).join(''));
  return SEC('البناءات والتجهيزات والدعم الاجتماعي والتأهيل','fa-wrench',h)};
-
-const sMeet=()=>SEC('الاجتماعات مع الشركاء','fa-handshake',TB(['الاجتماعات','عدد الحاضرين','التاريخ','موضوع الاجتماع'],['المنتخبون والجماعات المحلية','رجال الأعمال','جمعيات المجتمع المدني','متدخلون آخرون'].map((l,i)=>`<td>${l}</td>`+N(`mt_${i}_n`,l,'عدد الحاضرين')+TX(`mt_${i}_d`,l,'التاريخ','date')+TX(`mt_${i}_s`,l,'موضوع الاجتماع')))+T('mt_res','النتائج والقرارات'));
 
 const pbRow=()=>`<tr class="pbr">${[0,1,2,3].map(i=>`<td><input class="ip" data-i="${i}"></td>`).join('')}</tr>`;
 const sPb=()=>SEC('المشاكل المطروحة والحلول المقترحة والقرارات','fa-comment-dots',
@@ -183,7 +179,7 @@ function addCm(){$('#cmc').insertAdjacentHTML('beforeend',`<input class="cm ip" 
 const snap=()=>{const d={};$$('#fc [data-k]').forEach(e=>{if(e.value!=='')d[e.dataset.k]=e.value});return{d,cm:$$('.cm').map(e=>e.value),pb:$$('.pbr').map(r=>[...r.querySelectorAll('input')].map(i=>i.value))}};
 const v=k=>{const e=$(`[data-k="${k}"]`);return e?+e.value||0:0},put=(k,x)=>{const e=$(`[data-k="${k}"]`);if(e)e.value=x},auto=(k,x)=>{const e=$(`[data-k="${k}"]`);if(e&&!e.dataset.d)e.value=x};
 function render(keep){const c=CY[cur],s=keep?snap():null;
- $('#fc').innerHTML=[sGen(c),sStu(c),sCls(c),sHR(c),c.board?sBoard():'',sSup(),sGov(c),sBlk(),sBld(c),sMeet(),sPb()].join('');
+ $('#fc').innerHTML=[sGen(c),sStu(c),sCls(c),sHR(c),c.board?sBoard():'',sSup(),sGov(c),sBlk(),sBld(c),sPb()].join('');
  if(s){Object.entries(s.d).forEach(([k,x])=>put(k,x));s.cm.forEach((x,i)=>{if(i>=$$('.cm').length)addCm();$$('.cm')[i].value=x});
   s.pb.forEach((r,i)=>{if(i>=$$('.pbr').length)$('#pbb').insertAdjacentHTML('beforeend',pbRow());$$('.pbr')[i].querySelectorAll('input').forEach((el,j)=>el.value=r[j]||'')})}
  recalc()}
@@ -208,12 +204,12 @@ $('#fc').addEventListener('input',e=>{if(e.target.dataset.auto)e.target.dataset.
 function sv(w){const f=w=='form';$('#form-view').classList.toggle('hidden',!f);$('#dash-view').classList.toggle('hidden',f);if(!f)dash()}
 const persist=()=>localStorage.setItem('aref_school_reports_data',JSON.stringify(st.reports));
 function save(e){e.preventDefault();const s=snap(),d=s.d,lab={};Object.keys(d).forEach(k=>lab[k]=FL[k]||k);
- st.reports.push({id:Date.now(),directorate:st.dir,level:CY[cur].n,schoolName:d.school||'',commune:d.commune||'',visitDate:d.vdate||'',actualRegistered:+d.s_t_reg||0,nonJoined:+d.s_t_abs||0,nonJoinedRate:d.s_t_rate||'0%',q_start:d.b_start||'',q_tests:d.b_tests||'',q_project:d.b_project||'',committeeMembers:s.cm.filter(Boolean).join(' - '),notes:d.notes||'',d,lab,problems:s.pb.filter(p=>p.some(Boolean))});
+ st.reports.push({id:Date.now(),directorate:st.dir,level:CY[cur].n,schoolName:d.school||'',commune:d.commune||'',visitDate:d.vdate||'',actualRegistered:+d.s_t_reg||0,nonJoined:+d.s_t_abs||0,nonJoinedRate:d.s_t_rate||'0%',q_tests:d.b_tests||'',q_project:d.b_project||'',committeeMembers:s.cm.filter(Boolean).join(' - '),notes:d.notes||'',d,lab,problems:s.pb.filter(p=>p.some(Boolean))});
  persist();alert('تم حفظ تقرير شبكة الدخول المدرسي بنجاح!');render(false);sv('dash')}
-function dash(){const R=st.reports;let a=0,b=0,y=0,ty=0,tn=0;
- R.forEach(r=>{a+=r.actualRegistered||0;b+=r.nonJoined||0;if(r.q_start=='نعم')y++;if(r.q_tests=='نعم')ty++;else if(r.q_tests=='لا')tn++});
- $('#d-reg').innerText=a.toLocaleString();$('#d-abs').innerText=b.toLocaleString();$('#d-cnt').innerText=R.length;$('#d-rate').innerText=(R.length?(y/R.length*100).toFixed(1):0)+'%';
- $('#rows').innerHTML=R.map(r=>`<tr class="border-b hover:bg-slate-50"><td class="p-3 font-bold">${r.directorate}</td><td class="p-3">${r.schoolName}</td><td class="p-3">${r.level}</td><td class="p-3 text-xs">${r.visitDate||'-'}</td><td class="p-3 font-bold text-emerald-700">${(r.actualRegistered||0).toLocaleString()}</td><td class="p-3 font-bold text-red-600">${(r.nonJoined||0).toLocaleString()}</td><td class="p-3 font-bold ${r.q_start=='نعم'?'text-emerald-600':'text-red-500'}">${r.q_start||'-'}</td><td class="p-3"><button onclick="del(${r.id})" class="text-red-600 text-xs font-bold"><i class="fa-solid fa-trash"></i> حذف</button></td></tr>`).join('');
+function dash(){const R=st.reports;let a=0,b=0,ty=0,tn=0;
+ R.forEach(r=>{a+=r.actualRegistered||0;b+=r.nonJoined||0;if(r.q_tests=='نعم')ty++;else if(r.q_tests=='لا')tn++});
+ $('#d-reg').innerText=a.toLocaleString();$('#d-abs').innerText=b.toLocaleString();$('#d-cnt').innerText=R.length;$('#d-rate').innerText=(a+b?(b/(a+b)*100).toFixed(1):0)+'%';
+ $('#rows').innerHTML=R.map(r=>`<tr class="border-b hover:bg-slate-50"><td class="p-3 font-bold">${r.directorate}</td><td class="p-3">${r.schoolName}</td><td class="p-3">${r.level}</td><td class="p-3 text-xs">${r.visitDate||'-'}</td><td class="p-3 font-bold text-emerald-700">${(r.actualRegistered||0).toLocaleString()}</td><td class="p-3 font-bold text-red-600">${(r.nonJoined||0).toLocaleString()}</td><td class="p-3 font-bold text-amber-700">${r.nonJoinedRate||'-'}</td><td class="p-3"><button onclick="del(${r.id})" class="text-red-600 text-xs font-bold"><i class="fa-solid fa-trash"></i> حذف</button></td></tr>`).join('');
  const m={};R.forEach(r=>m[r.directorate]=(m[r.directorate]||0)+(r.actualRegistered||0));
  dirC&&dirC.destroy();pieC&&pieC.destroy();
  dirC=new Chart($('#ch1'),{type:'bar',data:{labels:Object.keys(m).length?Object.keys(m):['لا توجد معطيات'],datasets:[{label:'المسجلون فعليا',data:Object.keys(m).length?Object.values(m):[0],backgroundColor:'#059669',borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
@@ -221,12 +217,12 @@ function dash(){const R=st.reports;let a=0,b=0,y=0,ty=0,tn=0;
 function del(id){if(confirm('هل أنت متأكد من حذف هذا السجل؟')){st.reports=st.reports.filter(r=>r.id!==id);persist();dash()}}
 function clearAll(){if(confirm('هل أنت متأكد من مسح جميع التقارير؟ لا يمكن التراجع عن هذه الخطوة.')){st.reports=[];localStorage.removeItem('aref_school_reports_data');dash()}}
 function exportX(){if(!st.reports.length)return alert('لا توجد تقارير لتصديرها.');
- const a=st.reports.map(r=>({'المديرية':r.directorate,'السلك':r.level,'اسم المؤسسة':r.schoolName,'الجماعة':r.commune,'تاريخ الزيارة':r.visitDate,'المسجلون فعليا':r.actualRegistered,'غير الملتحقين':r.nonJoined,'نسبة عدم الالتحاق':r.nonJoinedRate,'انطلاق الدراسة':r.q_start,'تمرير الروائز':r.q_tests,'مشروع المؤسسة':r.q_project,'أعضاء اللجنة':r.committeeMembers,'الملاحظات':r.notes}));
+ const a=st.reports.map(r=>({'المديرية':r.directorate,'السلك':r.level,'اسم المؤسسة':r.schoolName,'الجماعة':r.commune,'تاريخ الزيارة':r.visitDate,'المسجلون فعليا':r.actualRegistered,'غير الملتحقين':r.nonJoined,'نسبة عدم الالتحاق':r.nonJoinedRate,'تمرير الروائز':r.q_tests,'مشروع المؤسسة':r.q_project,'أعضاء اللجنة':r.committeeMembers,'الملاحظات':r.notes}));
  const b=st.reports.map(r=>{const o={'المديرية':r.directorate,'السلك':r.level};Object.entries(r.d||{}).forEach(([k,x])=>o[(r.lab||{})[k]||k]=x);(r.problems||[]).forEach((p,i)=>o['مشكل '+(i+1)]=p.join(' | '));return o});
  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(a),'شبكة_الدخول_المدرسي');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(b),'المعطيات الكاملة');
  XLSX.writeFile(wb,'شبكة_تتبع_الدخول_المدرسي_الأكاديمية.xlsx')}
 function importX(ev){const f=ev.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=e=>{const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'}),j=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
- j.forEach((r,i)=>st.reports.push({id:Date.now()+i,directorate:r['المديرية']||'مديرية مراكش',level:r['السلك']||'الابتدائي',schoolName:r['اسم المؤسسة']||'',commune:r['الجماعة']||'',visitDate:r['تاريخ الزيارة']||'',actualRegistered:Number(r['المسجلون فعليا']||r['المسجلون فعليا']||0),nonJoined:Number(r['غير الملتحقين']||0),nonJoinedRate:r['نسبة عدم الالتحاق']||'0%',q_start:r['انطلاق الدراسة']||'',q_tests:r['تمرير الروائز']||'',q_project:r['مشروع المؤسسة']||'',committeeMembers:r['أعضاء اللجنة']||'',notes:r['الملاحظات']||''}));
+ j.forEach((r,i)=>st.reports.push({id:Date.now()+i,directorate:r['المديرية']||'مديرية مراكش',level:r['السلك']||'الابتدائي',schoolName:r['اسم المؤسسة']||'',commune:r['الجماعة']||'',visitDate:r['تاريخ الزيارة']||'',actualRegistered:Number(r['المسجلون فعليا']||r['المسجلون فعليا']||0),nonJoined:Number(r['غير الملتحقين']||0),nonJoinedRate:r['نسبة عدم الالتحاق']||'0%',q_tests:r['تمرير الروائز']||'',q_project:r['مشروع المؤسسة']||'',committeeMembers:r['أعضاء اللجنة']||'',notes:r['الملاحظات']||''}));
  if(j.length){persist();alert('تم استيراد شبكة المعطيات بنجاح!');sv('dash')}};rd.readAsArrayBuffer(f)}
 window.onload=()=>{render(false);dash();sv('form')};
 </script>
