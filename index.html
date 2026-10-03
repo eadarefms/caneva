@@ -37,18 +37,19 @@
                 
                 <!-- أزرار الإعدادات والتصدير والترشيح -->
                 <div class="flex flex-wrap items-center gap-2">
-                    <!-- زر لوحة القيادة -->
-                    <button id="btnDashboard" onclick="switchView('dashboard')" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm transition flex items-center gap-2 border border-white/20">
+                    <button onclick="switchTab('dashboard')" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm transition flex items-center gap-2 border border-white/20">
                         <i class="fa-solid fa-chart-line"></i> لوحة القيادة
                     </button>
 
-                    <!-- زر استيراد Excel -->
+                    <button onclick="switchTab('entry')" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-sm transition flex items-center gap-2 shadow font-bold">
+                        <i class="fa-solid fa-pen-to-square"></i> تعبئة معطيات اللجنة
+                    </button>
+
                     <label class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-sm transition flex items-center gap-2 shadow cursor-pointer">
                         <i class="fa-solid fa-file-import"></i> استيراد
                         <input type="file" id="importFile" accept=".xlsx, .xls" class="hidden" onchange="importFromExcel(event)">
                     </label>
 
-                    <!-- زر تصدير Excel -->
                     <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-sm transition flex items-center gap-2 shadow">
                         <i class="fa-solid fa-file-excel"></i> تصدير
                     </button>
@@ -60,7 +61,55 @@
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
 
-        <!-- أزرار تصفية الأسلاك التعليمية (الابتدائي / الإعدادي / التأهيلي) -->
+        <!-- قسم استمارة تعبئة المعطيات الخاصة باللجنة -->
+        <section id="entrySection" class="bg-white p-6 rounded-2xl shadow-sm border border-amber-200 bg-amber-50/20">
+            <h2 class="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-edit text-amber-600"></i>
+                إدخال وتحديث معطيات التقرير (أعضاء اللجنة)
+            </h2>
+            <form id="dataForm" onsubmit="handleFormSubmit(event)" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">المديرية الإقليمية</label>
+                    <select id="inputDirectorate" required class="w-full p-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+                        <option value="مراكش">مراكش</option>
+                        <option value="آسفي">آسفي</option>
+                        <option value="الحوز">الحوز</option>
+                        <option value="قلعة السراغنة">قلعة السراغنة</option>
+                        <option value="الصويرة">الصويرة</option>
+                        <option value="شيشاوة">شيشاوة</option>
+                        <option value="الرحامنة">الرحامنة</option>
+                        <option value="اليوسفية">اليوسفية</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">السلك التعليمي</label>
+                    <select id="inputLevel" required class="w-full p-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+                        <option value="الابتدائي">الابتدائي</option>
+                        <option value="الإعدادي">الإعدادي</option>
+                        <option value="التأهيلي">التأهيلي</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">عدد المؤسسات</label>
+                    <input type="number" id="inputSchools" min="0" required placeholder="0" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">المسجلون</label>
+                    <input type="number" id="inputRegistered" min="0" required placeholder="0" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">الملتحقون الفعليون</label>
+                    <input type="number" id="inputAttended" min="0" required placeholder="0" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition shadow">
+                        <i class="fa-solid fa-plus-circle"></i> إضافة / تحديث
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- أزرار تصفية الأسلاك التعليمية -->
         <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
             <span class="font-bold text-sm text-slate-700 flex items-center gap-2">
                 <i class="fa-solid fa-filter text-emerald-600"></i> تصفية حسب السلك التعليمي:
@@ -78,7 +127,7 @@
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
                 <div>
                     <p class="text-xs font-semibold text-slate-500">إجمالي التلاميذ</p>
-                    <h3 id="statStudents" class="text-2xl font-bold text-slate-800 mt-1">424,000</h3>
+                    <h3 id="statStudents" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
                 </div>
                 <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
                     <i class="fa-solid fa-users"></i>
@@ -87,7 +136,7 @@
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
                 <div>
                     <p class="text-xs font-semibold text-slate-500">الملتحقون الفعليون</p>
-                    <h3 id="statAttended" class="text-2xl font-bold text-slate-800 mt-1">400,730</h3>
+                    <h3 id="statAttended" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
                 </div>
                 <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
                     <i class="fa-solid fa-user-check"></i>
@@ -96,7 +145,7 @@
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
                 <div>
                     <p class="text-xs font-semibold text-slate-500">متوسط نسبة الالتحاق</p>
-                    <h3 id="statRate" class="text-2xl font-bold text-emerald-600 mt-1">94.4%</h3>
+                    <h3 id="statRate" class="text-2xl font-bold text-emerald-600 mt-1">0%</h3>
                 </div>
                 <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-xl">
                     <i class="fa-solid fa-chart-pie"></i>
@@ -105,7 +154,7 @@
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
                 <div>
                     <p class="text-xs font-semibold text-slate-500">عدد المؤسسات</p>
-                    <h3 id="statSchools" class="text-2xl font-bold text-slate-800 mt-1">1,080</h3>
+                    <h3 id="statSchools" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
                 </div>
                 <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl">
                     <i class="fa-solid fa-school"></i>
@@ -116,7 +165,7 @@
         <!-- Section: Table -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-4 border-b border-slate-100 flex justify-between items-center">
-                <h2 class="font-bold text-slate-800">بيانات الدخول المدرسي حسب المديريات</h2>
+                <h2 class="font-bold text-slate-800">بيانات الدخول المدرسي المسجلة</h2>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-right text-sm">
@@ -128,68 +177,94 @@
                             <th class="p-4">المسجلون</th>
                             <th class="p-4">الملتحقون</th>
                             <th class="p-4">نسبة الالتحاق</th>
+                            <th class="p-4 text-center">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody" class="divide-y divide-slate-100">
-                        <!-- تُملأ البيانات ديناميكياً بواسطة JavaScript -->
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <!-- JavaScript Logic -->
     <script>
-        // 1. البيانات الأساسية التطبيقية
-        let allData = [
-            { directorate: 'مراكش', level: 'الابتدائي', schools: 150, registered: 60000, attended: 58000 },
-            { directorate: 'مراكش', level: 'الإعدادي', schools: 100, registered: 50000, attended: 47500 },
-            { directorate: 'مراكش', level: 'التأهيلي', schools: 70, registered: 35000, attended: 33700 },
-            { directorate: 'آسفي', level: 'الابتدائي', schools: 110, registered: 40000, attended: 38000 },
-            { directorate: 'آسفي', level: 'الإعدادي', schools: 60, registered: 30000, attended: 28500 },
-            { directorate: 'آسفي', level: 'التأهيلي', schools: 40, registered: 18000, attended: 17100 },
-            { directorate: 'الحوز', level: 'الابتدائي', schools: 120, registered: 30000, attended: 27600 },
-            { directorate: 'الحوز', level: 'الإعدادي', schools: 50, registered: 20000, attended: 18000 },
-            { directorate: 'الحوز', level: 'التأهيلي', schools: 25, registered: 12000, attended: 10800 },
-            { directorate: 'قلعة السراغنة', level: 'الابتدائي', schools: 100, registered: 35000, attended: 33250 },
-            { directorate: 'قلعة السراغنة', level: 'الإعدادي', schools: 50, registered: 25000, attended: 23750 },
-            { directorate: 'قلعة السراغنة', level: 'التأهيلي', schools: 30, registered: 15000, attended: 14250 },
-            { directorate: 'الصويرة', level: 'الابتدائي', schools: 110, registered: 28000, attended: 25760 },
-            { directorate: 'الصويرة', level: 'الإعدادي', schools: 40, registered: 16000, attended: 14720 },
-            { directorate: 'الصويرة', level: 'التأهيلي', schools: 25, registered: 10000, attended: 9200 }
+        // 1. البيانات الأساسية
+        let allData = JSON.parse(localStorage.getItem('schoolData')) || [
+            { id: 1, directorate: 'مراكش', level: 'الإعدادي', schools: 100, registered: 50000, attended: 47500 },
+            { id: 2, directorate: 'آسفي', level: 'الإعدادي', schools: 60, registered: 30000, attended: 28500 },
+            { id: 3, directorate: 'الحوز', level: 'الإعدادي', schools: 50, registered: 20000, attended: 18000 },
+            { id: 4, directorate: 'قلعة السراغنة', level: 'الإعدادي', schools: 50, registered: 25000, attended: 23750 },
+            { id: 5, directorate: 'الصويرة', level: 'الإعدادي', schools: 40, registered: 16000, attended: 14720 }
         ];
 
-        let currentFilteredData = [...allData];
+        let currentFilter = 'الكل';
 
-        // 2. تحديث الجدول والإحصائيات
-        function renderData(data) {
+        function saveData() {
+            localStorage.setItem('schoolData', JSON.stringify(allData));
+        }
+
+        // 2. إدخال أو تعديل البيانات بواسطة أعضاء اللجنة
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const dir = document.getElementById('inputDirectorate').value;
+            const lvl = document.getElementById('inputLevel').value;
+            const sch = parseInt(document.getElementById('inputSchools').value);
+            const reg = parseInt(document.getElementById('inputRegistered').value);
+            const att = parseInt(document.getElementById('inputAttended').value);
+
+            // التحقق إن كانت العينة موجودة مسبقاً لتحديثها، وإلا يتم إضافتها
+            const existingIndex = allData.findIndex(item => item.directorate === dir && item.level === lvl);
+            if (existingIndex !== -1) {
+                allData[existingIndex] = { id: allData[existingIndex].id, directorate: dir, level: lvl, schools: sch, registered: reg, attended: att };
+            } else {
+                allData.push({ id: Date.now(), directorate: dir, level: lvl, schools: sch, registered: reg, attended: att });
+            }
+
+            saveData();
+            renderData();
+            document.getElementById('dataForm').reset();
+            alert('تم حفظ البيانات بنجاح!');
+        }
+
+        // حذف عنصر من الجدول
+        function deleteItem(id) {
+            if (confirm('هل أنت تأكد من رغبتك في حذف هذا السجل؟')) {
+                allData = allData.filter(item => item.id !== id);
+                saveData();
+                renderData();
+            }
+        }
+
+        // 3. تحديث العرض بالجدول
+        function renderData() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
-            let totalSchools = 0;
-            let totalReg = 0;
-            let totalAtt = 0;
+            let filtered = currentFilter === 'الكل' ? allData : allData.filter(item => item.level === currentFilter);
 
-            data.forEach(item => {
-                const rate = ((item.attended / item.registered) * 100).toFixed(1);
+            let totalSchools = 0, totalReg = 0, totalAtt = 0;
+
+            filtered.forEach(item => {
+                const rate = item.registered > 0 ? ((item.attended / item.registered) * 100).toFixed(1) : 0;
                 totalSchools += item.schools;
                 totalReg += item.registered;
                 totalAtt += item.attended;
 
-                const row = `
+                tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
                         <td class="p-4 font-bold text-slate-800">${item.directorate}</td>
-                        <td class="p-4"><span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-1 rounded-md font-semibold">${item.level}</span></td>
+                        <td class="p-4"><span class="bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-md font-semibold">${item.level}</span></td>
                         <td class="p-4">${item.schools}</td>
                         <td class="p-4">${item.registered.toLocaleString()}</td>
                         <td class="p-4">${item.attended.toLocaleString()}</td>
                         <td class="p-4"><span class="text-emerald-600 font-bold">${rate}%</span></td>
+                        <td class="p-4 text-center">
+                            <button onclick="deleteItem(${item.id})" class="text-red-500 hover:text-red-700 font-bold text-xs"><i class="fa-solid fa-trash"></i> حذف</button>
+                        </td>
                     </tr>
                 `;
-                tbody.innerHTML += row;
             });
 
-            // تحديث بطاقات الإحصائيات العلويّة
             document.getElementById('statStudents').innerText = totalReg.toLocaleString();
             document.getElementById('statAttended').innerText = totalAtt.toLocaleString();
             document.getElementById('statSchools').innerText = totalSchools.toLocaleString();
@@ -197,29 +272,28 @@
             document.getElementById('statRate').innerText = `${totalRate}%`;
         }
 
-        // 3. زر التصفية حسب السلك (الابتدائي / الإعدادي / التأهيلي)
+        // 4. تصفية الأسلاك
         function filterByLevel(level) {
-            // تحديث تصميم الأزرار النشطة
-            const buttons = document.querySelectorAll('.filter-btn');
-            buttons.forEach(btn => {
-                if (btn.innerText.trim() === level) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+            currentFilter = level;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText.trim() === level);
             });
-
-            if (level === 'الكل') {
-                currentFilteredData = [...allData];
-            } else {
-                currentFilteredData = allData.filter(item => item.level === level);
-            }
-            renderData(currentFilteredData);
+            renderData();
         }
 
-        // 4. زر التصدير إلى Excel
+        // 5. التبديل للتركيز على نموذج الإدخال
+        function switchTab(tab) {
+            if (tab === 'entry') {
+                document.getElementById('entrySection').scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('inputSchools').focus();
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // 6. التصدير والاستيراد
         function exportToExcel() {
-            const worksheet = XLSX.utils.json_to_sheet(currentFilteredData.map(item => ({
+            const worksheet = XLSX.utils.json_to_sheet(allData.map(item => ({
                 'المديرية الإقليمية': item.directorate,
                 'السلك التعليمي': item.level,
                 'عدد المؤسسات': item.schools,
@@ -227,13 +301,11 @@
                 'الملتحقون': item.attended,
                 'نسبة الالتحاق': `${((item.attended / item.registered) * 100).toFixed(1)}%`
             })));
-            
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "الدخول المدرسي");
-            XLSX.writeFile(workbook, "تقرير_الدخول_المدرسي.xlsx");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "معطيات اللجنة");
+            XLSX.writeFile(workbook, "معطيات_الدخول_المدرسي.xlsx");
         }
 
-        // 5. زر استيراد ملف Excel
         function importFromExcel(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -242,41 +314,26 @@
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const importedJson = XLSX.utils.sheet_to_json(worksheet);
+                const importedJson = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
                 if (importedJson.length > 0) {
-                    // تحويل البيانات المستوردة لشكل يناسب النظام
-                    allData = importedJson.map(row => ({
+                    allData = importedJson.map((row, index) => ({
+                        id: Date.now() + index,
                         directorate: row['المديرية الإقليمية'] || row['directorate'] || 'غير محدد',
-                        level: row['السلك التعليمي'] || row['level'] || 'الكل',
+                        level: row['السلك التعليمي'] || row['level'] || 'الابتدائي',
                         schools: Number(row['عدد المؤسسات'] || row['schools'] || 0),
                         registered: Number(row['المسجلون'] || row['registered'] || 0),
                         attended: Number(row['الملتحقون'] || row['attended'] || 0)
                     }));
-                    currentFilteredData = [...allData];
-                    renderData(currentFilteredData);
-                    alert("تمت عملية استيراد البيانات بنجاح!");
-                } else {
-                    alert("الملف المرفوع فارغ أو بتنسيق غير صحيح.");
+                    saveData();
+                    renderData();
+                    alert("تم استيراد معطيات اللجنة بنجاح!");
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        // 6. زر لوحة القيادة (إعادة ضبط العرض للوضع الافتراضي)
-        function switchView(viewName) {
-            if (viewName === 'dashboard') {
-                filterByLevel('الكل');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        }
-
-        // التشغيل المبدئي عند تحميل الصفحة
-        window.onload = function() {
-            renderData(allData);
-        };
+        window.onload = renderData;
     </script>
 </body>
 </html>
