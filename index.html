@@ -75,12 +75,13 @@ body{font-family:'Cairo',sans-serif;background:#f1f5f9}
   <div class="lg:col-span-6"><label class="lb"><i class="fa-solid fa-school text-emerald-600"></i> المؤسسة:</label><select id="fs" class="ip"></select></div>
   <div class="lg:col-span-3"><button type="button" onclick="exportOne($('#fs').value)" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-2.5 rounded-xl text-sm"><i class="fa-solid fa-file-excel"></i> تصدير شبكة المؤسسة</button></div>
  </div>
- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+ <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
   <div class="bg-white p-5 rounded-2xl border border-slate-200"><p class="text-xs font-bold text-slate-500">إجمالي التلاميذ المسجلين</p><h3 id="d-reg" class="text-2xl font-extrabold mt-1">0</h3></div>
   <div class="bg-white p-5 rounded-2xl border border-slate-200"><p class="text-xs font-bold text-slate-500">إجمالي غير الملتحقين</p><h3 id="d-abs" class="text-2xl font-extrabold text-red-600 mt-1">0</h3></div>
   <div class="bg-white p-5 rounded-2xl border border-slate-200"><p class="text-xs font-bold text-slate-500">نسبة عدم الالتحاق</p><h3 id="d-rate" class="text-2xl font-extrabold text-teal-600 mt-1">0%</h3></div>
-  <div class="bg-white p-5 rounded-2xl border border-slate-200"><p class="text-xs font-bold text-slate-500">المؤسسات المزارة</p><h3 id="d-cnt" class="text-2xl font-extrabold text-indigo-600 mt-1">0</h3></div>
- </div>
+   </div>
+ <h2 class="font-bold text-slate-800 text-sm flex flex-wrap items-center gap-2"><i class="fa-solid fa-gauge-high text-emerald-600"></i> مؤشرات الدخول المدرسي <span class="text-xs font-semibold text-slate-500">(النسبة محسوبة من عدد المؤسسات المزارة)</span></h2>
+ <div id="ind" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4"></div>
  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
   <div class="bg-white p-5 rounded-2xl border border-slate-200"><h3 id="ch1t" class="font-bold text-sm mb-3">توزيع التسجيل والالتحاق حسب المديريات</h3><div class="h-64"><canvas id="ch1"></canvas></div></div>
   <div class="bg-white p-5 rounded-2xl border border-slate-200"><h3 class="font-bold text-sm mb-3">مؤشرات تمرير الروائز</h3><div class="h-64"><canvas id="ch2"></canvas></div></div>
@@ -246,10 +247,24 @@ const mk=(s,dir,y)=>{const d=s.d,lab={};Object.keys(d).forEach(k=>lab[k]=FL[k]||
 async function save(e){e.preventDefault();const b=e.submitter;if(b)b.disabled=true;const ok=await addReport(mk(snap(),st.dir,cur));if(b)b.disabled=false;
  alert(ok?'تم حفظ التقرير في قاعدة البيانات السحابية بنجاح!':db?'تم حفظ التقرير على هذا الجهاز، لكن لم يتأكد رفعه إلى السحابة. سيُرفع تلقائيا عند عودة الاتصال، راجع حالة الاتصال أعلى الصفحة.':'تم حفظ التقرير على هذا الجهاز فقط (قاعدة البيانات السحابية غير متاحة).');
  render(false);sv('dash')}
+const noShort=d=>{const k=Object.keys(d);return k.some(x=>/^hr_\d+_(nd|av|as|nw|lv)$/.test(x))&&!k.some(x=>/^hr_\d+_df$/.test(x)&&+d[x]<0)};
+const IND=[
+['المؤسسات المزارة','fa-school','indigo',null],
+['المؤسسات التي ليس بها خصاص للأساتذة','fa-chalkboard-user','emerald',noShort],
+['المؤسسات التي تمسك الغياب اليومي','fa-clipboard-user','teal',d=>d.abs_daily=='نعم'],
+['المؤسسات التي تعرف زيارات المفتشين المواكبين','fa-user-check','sky',d=>d.insp=='نعم'],
+['المؤسسات المتوفرة على كراسات الدعم المكثف','fa-book','amber',d=>d.b_tests_4=='نعم'],
+['المؤسسات التي تتوفر كتب التعليم الصريح بالقرب منها','fa-book-open-reader','violet',d=>d.ts_lib=='نعم'],
+['المؤسسات المفعل بها Office 365','fa-laptop','blue',d=>d.b_tools_1=='نعم'],
+['المؤسسات التي تتم بها صيانة المساليط','fa-screwdriver-wrench','orange',d=>d.b_tools_3=='نعم'],
+['المؤسسات المؤهلة من حيث الفضاء الداخلي','fa-door-open','green',d=>d.rh_in=='نعم'],
+['المؤسسات المؤهلة من حيث الفضاء الخارجي','fa-building','cyan',d=>d.rh_out=='نعم']];
+function ind(R){const N=R.length;$('#ind').innerHTML=IND.map(([l,ic,c,f])=>{const n=f?R.filter(r=>r.d&&f(r.d)).length:N,p=N?Math.round(n/N*100):0;
+ return`<div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2"><div class="flex items-start justify-between gap-2"><p class="text-xs font-bold text-slate-600 leading-5">${l}</p><div class="w-9 h-9 shrink-0 bg-${c}-50 text-${c}-600 rounded-xl flex items-center justify-center"><i class="fa-solid ${ic}"></i></div></div><div class="flex items-end justify-between"><h3 class="text-3xl font-extrabold text-${c}-600">${n.toLocaleString()}</h3>${f?`<span class="text-xs font-bold text-slate-500">${p}%</span>`:''}</div>${f?`<div class="h-1.5 bg-slate-100 rounded"><div class="h-1.5 rounded bg-${c}-500" style="width:${p}%"></div></div>`:''}</div>`}).join('')}
 function dash(){const fv=$('#fd').value,R=st.reports.filter(r=>!fv||r.directorate==fv),sel=$('#fs').value;let a=0,b=0,ty=0,tn=0;
  $('#fs').innerHTML='<option value="">— اختر المؤسسة —</option>'+R.map(r=>`<option value="${r.id}">${r.schoolName||'بدون اسم'} (${r.level}${r.visitDate?' - '+r.visitDate:''})</option>`).join('');$('#fs').value=R.some(r=>String(r.id)==sel)?sel:'';
  R.forEach(r=>{a+=r.actualRegistered||0;b+=r.nonJoined||0;if(r.q_tests=='نعم')ty++;else if(r.q_tests=='لا')tn++});
- $('#d-reg').innerText=a.toLocaleString();$('#d-abs').innerText=b.toLocaleString();$('#d-cnt').innerText=R.length;$('#d-rate').innerText=(a+b?(b/(a+b)*100).toFixed(1):0)+'%';
+ $('#d-reg').innerText=a.toLocaleString();$('#d-abs').innerText=b.toLocaleString();ind(R);$('#d-rate').innerText=(a+b?(b/(a+b)*100).toFixed(1):0)+'%';
  $('#rows').innerHTML=R.map(r=>`<tr class="border-b hover:bg-slate-50"><td class="p-3 font-bold">${r.directorate}</td><td class="p-3">${r.schoolName}</td><td class="p-3">${r.level}</td><td class="p-3 text-xs">${r.visitDate||'-'}</td><td class="p-3 font-bold text-emerald-700">${(r.actualRegistered||0).toLocaleString()}</td><td class="p-3 font-bold text-red-600">${(r.nonJoined||0).toLocaleString()}</td><td class="p-3 font-bold text-amber-700">${r.nonJoinedRate||'-'}</td><td class="p-3 whitespace-nowrap"><button onclick="exportOne(${r.id})" class="text-teal-700 text-xs font-bold ml-3"><i class="fa-solid fa-file-excel"></i> تصدير</button><button onclick="del(${r.id})" class="text-red-600 text-xs font-bold"><i class="fa-solid fa-trash"></i> حذف</button></td></tr>`).join('');
  const m={},gk=fv?'schoolName':'directorate';R.forEach(r=>{const k=r[gk]||'—';m[k]=(m[k]||0)+(r.actualRegistered||0)});$('#ch1t').innerText=fv?'توزيع التسجيل حسب المؤسسات - '+fv:'توزيع التسجيل والالتحاق حسب المديريات';
  dirC&&dirC.destroy();pieC&&pieC.destroy();
